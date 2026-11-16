@@ -6,3 +6,4 @@ export PATH="$DIR/bin:/tmp/bin:$PATH"
 
 echo "Starting InterviewPilot AI with Node $(node -v)..."
 exec node "$DIR/node_modules/vite/bin/vite.js" "$@"
+

@@ -51,3 +51,4 @@ tscProc.on('exit', (code) => {
     process.exit(viteCode || 0);
   });
 });
+

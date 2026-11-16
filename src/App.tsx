@@ -10,6 +10,7 @@ import { WorkspacePage } from '@/features/workspace/WorkspacePage';
 import { ReportPage } from '@/features/report/ReportPage';
 import { HistoryPage } from '@/features/history/HistoryPage';
 import { SettingsPage } from '@/features/settings/SettingsPage';
+import { ErrorBoundary } from '@/components/common/ErrorBoundary';
 import { db } from '@/services/db';
 
 export function App() {
@@ -44,7 +45,11 @@ export function App() {
   }, [initAuth, loadSettings, loadSessionFromDb]);
 
   if (!isAuthenticated) {
-    return <LoginPage />;
+    return (
+      <ErrorBoundary fallbackTitle="Authentication Screen Error">
+        <LoginPage />
+      </ErrorBoundary>
+    );
   }
 
   const handleStartSession = (sessionId: string) => {

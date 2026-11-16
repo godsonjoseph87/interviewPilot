@@ -44,7 +44,7 @@ export function LoginPage() {
 
     const initGoogleIdentity = () => {
       attempts++;
-      if (window.google?.accounts?.id) {
+      if (window.google?.accounts?.id && googleBtnRef.current) {
         try {
           window.google.accounts.id.initialize({
             client_id: effectiveClientId,
@@ -56,16 +56,19 @@ export function LoginPage() {
             auto_select: false,
           });
 
-          if (googleBtnRef.current) {
-            googleBtnRef.current.innerHTML = '';
-            window.google.accounts.id.renderButton(googleBtnRef.current, {
-              theme: 'filled_black',
-              size: 'large',
-              shape: 'rectangular',
-              text: 'signin_with',
-              width: 320,
-            });
+          // Safely clear any previously injected external nodes without touching React fibers
+          while (googleBtnRef.current.firstChild) {
+            googleBtnRef.current.removeChild(googleBtnRef.current.firstChild);
           }
+
+          window.google.accounts.id.renderButton(googleBtnRef.current, {
+            theme: 'filled_black',
+            size: 'large',
+            shape: 'rectangular',
+            text: 'signin_with',
+            width: 320,
+          });
+
           setIsGisReady(true);
           if (intervalId) clearInterval(intervalId);
         } catch (err) {
@@ -201,13 +204,15 @@ export function LoginPage() {
 
                 {effectiveClientId ? (
                   <div className="space-y-2">
-                    <div className="flex justify-center py-2" ref={googleBtnRef}>
-                      {!isGisReady && (
-                        <div className="h-10 w-full max-w-xs rounded-lg border border-border/80 bg-secondary/50 flex items-center justify-center text-xs text-muted-foreground animate-pulse">
-                          Loading Google Sign-in...
-                        </div>
-                      )}
-                    </div>
+                    {!isGisReady && (
+                      <div className="h-10 w-full max-w-xs mx-auto rounded-lg border border-border/80 bg-secondary/50 flex items-center justify-center text-xs text-muted-foreground animate-pulse">
+                        Loading Google Sign-in...
+                      </div>
+                    )}
+                    <div
+                      className={`flex justify-center py-2 min-h-[44px] ${!isGisReady ? 'hidden' : ''}`}
+                      ref={googleBtnRef}
+                    />
                     <div className="flex items-center justify-between text-[11px] text-muted-foreground px-1">
                       <span className="font-mono truncate max-w-[220px]">
                         ID: {effectiveClientId.slice(0, 24)}...

@@ -5,7 +5,7 @@ import path from 'path';
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [react()],
-  envPrefix: ['VITE_', 'GOOGLE_'],
+  envPrefix: ['VITE_', 'GOOGLE_', 'GEMINI_'],
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),

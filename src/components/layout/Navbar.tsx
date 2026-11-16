@@ -17,6 +17,7 @@ import { useAuthStore } from '@/store/useAuthStore';
 import { useSettingsStore } from '@/store/useSettingsStore';
 import { useInterviewSessionStore } from '@/store/useInterviewSessionStore';
 import { ApiKeyModal } from '@/components/common/ApiKeyModal';
+import { getApiKey } from '@/services/storage/keyStorage';
 
 interface NavbarProps {
   currentTab: string;
@@ -30,7 +31,7 @@ export function Navbar({ currentTab, setCurrentTab }: NavbarProps) {
   const [isApiKeyModalOpen, setIsApiKeyModalOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
 
-  const hasApiKey = !!settings.geminiApiKey;
+  const hasApiKey = !!settings.geminiApiKey || !!getApiKey();
   const isDark = settings.theme !== 'light';
 
   return (

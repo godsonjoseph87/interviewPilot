@@ -35,7 +35,7 @@ import {
   importDatabaseBackup,
   clearAllLocalData,
 } from '@/services/db/exportImport';
-import { ENV_GOOGLE_CLIENT_ID, ENV_GOOGLE_CLIENT_SECRET } from '@/lib/env';
+import { ENV_GOOGLE_CLIENT_ID, ENV_GOOGLE_CLIENT_SECRET, ENV_GEMINI_API_KEY } from '@/lib/env';
 import type { Difficulty } from '@/types';
 
 export function SettingsPage() {
@@ -176,11 +176,18 @@ export function SettingsPage() {
         {/* Section 1: Gemini API Credentials */}
         <Card className="border-border/80">
           <CardHeader className="pb-4 border-b border-border/50">
-            <div className="flex items-center gap-2">
-              <KeyRound className="h-4 w-4 text-cyan-400" />
-              <CardTitle className="text-base font-semibold">
-                Google Gemini API Integration
-              </CardTitle>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <KeyRound className="h-4 w-4 text-cyan-400" />
+                <CardTitle className="text-base font-semibold">
+                  Google Gemini API Integration
+                </CardTitle>
+              </div>
+              {apiKeyInput && (
+                <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-semibold">
+                  {apiKeyInput === ENV_GEMINI_API_KEY ? 'Loaded from .env' : 'Custom Configured'}
+                </span>
+              )}
             </div>
             <CardDescription className="text-xs">
               Direct browser-to-Google Gemini API credentials

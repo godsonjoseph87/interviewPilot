@@ -1,5 +1,5 @@
 import Dexie, { type Table } from 'dexie';
-import { ENV_GOOGLE_CLIENT_ID } from '@/lib/env';
+import { ENV_GOOGLE_CLIENT_ID, ENV_GEMINI_API_KEY } from '@/lib/env';
 import type {
   InterviewSession,
   Question,
@@ -50,7 +50,7 @@ export const SETTINGS_KEY = 'app_settings';
 
 export const DEFAULT_SETTINGS: AppSettings = {
   id: SETTINGS_KEY,
-  geminiApiKey: '',
+  geminiApiKey: ENV_GEMINI_API_KEY || '',
   geminiModel: 'gemini-2.5-flash',
   saveKeyLocally: false,
   googleClientId: ENV_GOOGLE_CLIENT_ID || '',
@@ -82,8 +82,12 @@ export async function getSettings(): Promise<AppSettings> {
     // Automatically merge ENV_GOOGLE_CLIENT_ID if stored value is empty
     if (!stored.googleClientId && ENV_GOOGLE_CLIENT_ID) {
       stored.googleClientId = ENV_GOOGLE_CLIENT_ID;
-      await db.settings.put(stored);
     }
+    // Automatically merge ENV_GEMINI_API_KEY if stored value is empty
+    if (!stored.geminiApiKey && ENV_GEMINI_API_KEY) {
+      stored.geminiApiKey = ENV_GEMINI_API_KEY;
+    }
+    await db.settings.put(stored);
     return stored;
   } catch (err) {
     console.error('Failed to get settings from db:', err);

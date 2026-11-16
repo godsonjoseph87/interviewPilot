@@ -3,7 +3,7 @@ import type { AppSettings } from '@/types';
 import { getSettings, saveSettings, DEFAULT_SETTINGS } from '@/services/db';
 import { setApiKey, getApiKey, isKeyPersisted, clearApiKey } from '@/services/storage/keyStorage';
 import { setAIModel } from '@/services/ai';
-import { ENV_GOOGLE_CLIENT_ID } from '@/lib/env';
+import { ENV_GOOGLE_CLIENT_ID, ENV_GEMINI_API_KEY } from '@/lib/env';
 
 interface SettingsState {
   settings: AppSettings;
@@ -31,7 +31,7 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
       const merged: AppSettings = {
         ...dbSettings,
         googleClientId: dbSettings.googleClientId || ENV_GOOGLE_CLIENT_ID || '',
-        geminiApiKey: currentKey || dbSettings.geminiApiKey || '',
+        geminiApiKey: currentKey || dbSettings.geminiApiKey || ENV_GEMINI_API_KEY || '',
         saveKeyLocally: persisted || dbSettings.saveKeyLocally,
       };
 

@@ -1,4 +1,5 @@
 // Key storage management with in-memory fallback and security warnings
+import { ENV_GEMINI_API_KEY } from '@/lib/env';
 
 let inMemoryApiKey: string = '';
 
@@ -36,6 +37,13 @@ export function getApiKey(): string {
   } catch (e) {
     // ignore
   }
+
+  // Fall back to environment variable if configured in .env
+  if (ENV_GEMINI_API_KEY) {
+    inMemoryApiKey = ENV_GEMINI_API_KEY;
+    return ENV_GEMINI_API_KEY;
+  }
+
   return '';
 }
 
@@ -56,9 +64,13 @@ export function isKeyPersisted(): boolean {
   }
 }
 
-export function maskApiKey(key: string): string {
-  if (!key) return '';
-  if (key.length <= 8) return '********';
-  return `${key.slice(0, 4)}...${key.slice(-4)}`;
+export function isEnvKey(): boolean {
+  const current = getApiKey();
+  return !!(current && current === ENV_GEMINI_API_KEY);
 }
 
+export function maskApiKey(key: string): string {
+  if (!key) return '';
+  if (key.length <= 10) return '********';
+  return `${key.slice(0, 6)}...${key.slice(-6)}`;
+}

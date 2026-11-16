@@ -2,8 +2,9 @@ import React, { useState } from 'react';
 import { Modal } from '@/components/ui/Modal';
 import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
-import { KeyRound, ShieldAlert, CheckCircle, ExternalLink } from 'lucide-react';
+import { KeyRound, ShieldAlert, CheckCircle, ExternalLink, Check } from 'lucide-react';
 import { useSettingsStore } from '@/store/useSettingsStore';
+import { ENV_GEMINI_API_KEY } from '@/lib/env';
 
 interface ApiKeyModalProps {
   isOpen: boolean;
@@ -56,9 +57,17 @@ export function ApiKeyModal({ isOpen, onClose, onSuccess }: ApiKeyModalProps) {
         </div>
 
         <div>
-          <label className="block text-xs font-semibold text-foreground mb-1.5">
-            Gemini API Key
-          </label>
+          <div className="flex items-center justify-between mb-1.5">
+            <label className="block text-xs font-semibold text-foreground">
+              Gemini API Key
+            </label>
+            {apiKeyInput && (
+              <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-semibold flex items-center gap-1">
+                <Check className="h-3 w-3" />
+                <span>{apiKeyInput === ENV_GEMINI_API_KEY ? 'Loaded from .env' : 'Configured'}</span>
+              </span>
+            )}
+          </div>
           <Input
             type="password"
             placeholder="AIzaSy..."

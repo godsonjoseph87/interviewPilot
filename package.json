@@ -4,9 +4,9 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
-    "build": "tsc && vite build",
-    "preview": "vite preview"
+    "dev": "node bin/run-vite.cjs",
+    "build": "node bin/run-build.cjs",
+    "preview": "node bin/run-preview.cjs"
   },
   "dependencies": {
     "@google/genai": "^3.3.0",

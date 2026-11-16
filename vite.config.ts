@@ -5,6 +5,7 @@ import path from 'path';
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [react()],
+  envPrefix: ['VITE_', 'GOOGLE_'],
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
@@ -19,7 +20,6 @@ export default defineConfig({
     rollupOptions: {
       output: {
         manualChunks: {
-          'vendor-react': ['react', 'react-dom'],
           'vendor-charts': ['recharts'],
           'vendor-pdf': ['jspdf', 'jspdf-autotable'],
           'vendor-icons': ['lucide-react'],

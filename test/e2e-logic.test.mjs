@@ -92,3 +92,4 @@ assert.strictEqual(calculated.recommendedHiringStatus, 'Hire', 'Recommendation s
 console.log('✅ Test 4 Passed: Deterministic scoring and rubric weights function accurately.\n');
 
 console.log('🎉 ALL 4 E2E LOGIC TESTS PASSED SUCCESSFULLY!');
+

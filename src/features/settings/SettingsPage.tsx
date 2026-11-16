@@ -35,6 +35,7 @@ import {
   importDatabaseBackup,
   clearAllLocalData,
 } from '@/services/db/exportImport';
+import { ENV_GOOGLE_CLIENT_ID, ENV_GOOGLE_CLIENT_SECRET } from '@/lib/env';
 import type { Difficulty } from '@/types';
 
 export function SettingsPage() {
@@ -251,6 +252,52 @@ export function SettingsPage() {
                 <br />
                 If left unchecked, your key will be retained only in session memory and cleared when the window is closed.
               </label>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Section: Google Identity & OAuth */}
+        <Card className="border-border/80">
+          <CardHeader className="pb-4 border-b border-border/50">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <User className="h-4 w-4 text-emerald-400" />
+                <CardTitle className="text-base font-semibold">
+                  Google Identity Services (OAuth)
+                </CardTitle>
+              </div>
+              {googleClientId && (
+                <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-semibold">
+                  {googleClientId === ENV_GOOGLE_CLIENT_ID ? 'Loaded from .env' : 'Custom Configured'}
+                </span>
+              )}
+            </div>
+            <CardDescription className="text-xs">
+              Client configuration for Google sign-in on the login screen
+            </CardDescription>
+          </CardHeader>
+
+          <CardContent className="pt-6 space-y-4">
+            <div>
+              <label className="block text-xs font-semibold text-foreground mb-1">
+                Google Client ID
+              </label>
+              <Input
+                placeholder="xyz.apps.googleusercontent.com"
+                value={googleClientId}
+                onChange={(e) => setGoogleClientId(e.target.value)}
+                className="text-xs font-mono"
+              />
+              <p className="text-[11px] text-muted-foreground mt-1.5 leading-relaxed">
+                Detected from <code className="text-cyan-400 font-mono">.env</code> (<code className="text-cyan-400 font-mono">GOOGLE_CLIENT_ID</code>). Used by Google Identity Services SDK to render the sign-in button.
+              </p>
+            </div>
+
+            <div className="p-3 rounded-lg bg-secondary/30 border border-border/60 text-xs text-muted-foreground space-y-1">
+              <p className="font-semibold text-foreground">Google Cloud Console Configuration:</p>
+              <p className="leading-relaxed">
+                Ensure <code className="text-cyan-300 font-mono">http://localhost:5173</code> is listed under <strong>Authorized JavaScript origins</strong> in your Google Cloud OAuth 2.0 Client credentials.
+              </p>
             </div>
           </CardContent>
         </Card>

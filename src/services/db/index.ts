@@ -1,4 +1,5 @@
 import Dexie, { type Table } from 'dexie';
+import { ENV_GOOGLE_CLIENT_ID } from '@/lib/env';
 import type {
   InterviewSession,
   Question,
@@ -52,7 +53,7 @@ export const DEFAULT_SETTINGS: AppSettings = {
   geminiApiKey: '',
   geminiModel: 'gemini-2.5-flash',
   saveKeyLocally: false,
-  googleClientId: '',
+  googleClientId: ENV_GOOGLE_CLIENT_ID || '',
   defaultDuration: 60,
   defaultDifficulty: 'hard',
   defaultTopics: [
@@ -77,6 +78,11 @@ export async function getSettings(): Promise<AppSettings> {
     if (!stored) {
       await db.settings.put(DEFAULT_SETTINGS);
       return DEFAULT_SETTINGS;
+    }
+    // Automatically merge ENV_GOOGLE_CLIENT_ID if stored value is empty
+    if (!stored.googleClientId && ENV_GOOGLE_CLIENT_ID) {
+      stored.googleClientId = ENV_GOOGLE_CLIENT_ID;
+      await db.settings.put(stored);
     }
     return stored;
   } catch (err) {

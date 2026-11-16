@@ -155,3 +155,4 @@ src/
 3. **In-Memory Default**: Keys can be retained in session memory and cleared when the browser tab closes.
 4. **Direct Browser Communication**: All AI requests travel directly from the interviewer's browser to Google's official Gemini endpoint.
 5. **Swappable Architecture**: The `AIProvider` interface allows introducing a secure backend proxy or serverless gateway seamlessly in the future without modifying application logic.
+

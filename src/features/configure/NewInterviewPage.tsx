@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import {
   Sparkles,
   Clock,
@@ -30,7 +31,7 @@ import {
 } from '@/lib/constants';
 import type { Difficulty, InterviewSession } from '@/types';
 import { generateInterviewQuestions } from '@/services/ai';
-import { ApiKeyModal } from '@/components/common/ApiKeyModal';
+import { MOCK_QUESTIONS, MOCK_DSA_PROBLEMS } from '@/services/ai/mockData';
 
 interface NewInterviewPageProps {
   onStartSession: (sessionId: string) => void;
@@ -42,16 +43,21 @@ export function NewInterviewPage({ onStartSession, onCancel }: NewInterviewPageP
   const { settings } = useSettingsStore();
   const { initNewSession } = useInterviewSessionStore();
 
-  // Form State
-  const [candidateName, setCandidateName] = useState('Daniel Miller');
-  const [candidateEmail, setCandidateEmail] = useState('daniel.miller@example.com');
-  const [jobPosition, setJobPosition] = useState('Senior Java Backend Engineer');
-  const [totalExperience, setTotalExperience] = useState('6.5 Years');
-  const [relevantJavaExperience, setRelevantJavaExperience] = useState('5.5 Years');
-  const [interviewerName, setInterviewerName] = useState(user?.name || 'Lead Interviewer');
-  const [candidateBackground, setCandidateBackground] = useState(
-    'Strong experience building high-throughput payment processing microservices using Spring Boot, Kafka, and MySQL.'
-  );
+  // Form State (Clean empty states with clear placeholder hints)
+  const [candidateName, setCandidateName] = useState('');
+  const [candidateEmail, setCandidateEmail] = useState('');
+  const [jobPosition, setJobPosition] = useState('');
+  const [totalExperience, setTotalExperience] = useState('');
+  const [relevantJavaExperience, setRelevantJavaExperience] = useState('');
+  const [interviewerName, setInterviewerName] = useState(user?.name || '');
+  const [candidateBackground, setCandidateBackground] = useState('');
+
+  // Automatically populate interviewer name from Google login
+  useEffect(() => {
+    if (user?.name && !interviewerName) {
+      setInterviewerName(user.name);
+    }
+  }, [user?.name]);
 
   const [difficulty, setDifficulty] = useState<Difficulty>(settings.defaultDifficulty || 'hard');
   const [durationMinutes, setDurationMinutes] = useState<number>(settings.defaultDuration || 60);
@@ -70,9 +76,7 @@ export function NewInterviewPage({ onStartSession, onCancel }: NewInterviewPageP
     ]
   );
 
-  const [customInstructions, setCustomInstructions] = useState(
-    'Prioritize production debugging scenarios, Kafka offset commit failures, Spring AOP transaction proxy pitfalls, and multi-threaded race condition diagnostics.'
-  );
+  const [customInstructions, setCustomInstructions] = useState('');
   const [dsaLanguage, setDsaLanguage] = useState('java');
   const [dsaProblemCount, setDsaProblemCount] = useState(2);
   const [enableFollowUps, setEnableFollowUps] = useState(true);
@@ -82,7 +86,30 @@ export function NewInterviewPage({ onStartSession, onCancel }: NewInterviewPageP
   const [isGenerating, setIsGenerating] = useState(false);
   const [generationStep, setGenerationStep] = useState('');
   const [generationError, setGenerationError] = useState<string | null>(null);
-  const [isApiKeyModalOpen, setIsApiKeyModalOpen] = useState(false);
+  const [elapsedSeconds, setElapsedSeconds] = useState(0);
+
+  // Auto-scroll to top, lock page scrolling, and track live elapsed generation timer
+  useEffect(() => {
+    let timer: any;
+    if (isGenerating) {
+      setElapsedSeconds(0);
+      timer = setInterval(() => {
+        setElapsedSeconds((prev) => prev + 1);
+      }, 1000);
+
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      const origBodyOverflow = document.body.style.overflow;
+      const origHtmlOverflow = document.documentElement.style.overflow;
+      document.body.style.overflow = 'hidden';
+      document.documentElement.style.overflow = 'hidden';
+
+      return () => {
+        if (timer) clearInterval(timer);
+        document.body.style.overflow = origBodyOverflow;
+        document.documentElement.style.overflow = origHtmlOverflow;
+      };
+    }
+  }, [isGenerating]);
 
   // Toggle topics
   const handleToggleTopic = (topicId: string) => {
@@ -133,13 +160,14 @@ export function NewInterviewPage({ onStartSession, onCancel }: NewInterviewPageP
 
   const breakdown = computeDurationBreakdown();
 
-  const handleStartInterview = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleStartInterview = async (e?: React.FormEvent | React.MouseEvent) => {
+    if (e && 'preventDefault' in e) e.preventDefault();
     if (!candidateName.trim()) {
       alert('Candidate name is required.');
       return;
     }
 
+    window.scrollTo({ top: 0, behavior: 'smooth' });
     setIsGenerating(true);
     setGenerationError(null);
     setGenerationStep('Validating interview parameters...');
@@ -149,20 +177,25 @@ export function NewInterviewPage({ onStartSession, onCancel }: NewInterviewPageP
       setGenerationStep('Connecting to Google Gemini API...');
 
       const sessionId = `session_${Date.now()}_${Math.random().toString(36).substr(2, 6)}`;
+      const finalCandidateName = candidateName.trim();
+      const finalJobPosition = jobPosition.trim() || 'Senior Java Backend Engineer';
+      const finalExperience = totalExperience.trim() || '5+ Years';
+      const finalJavaExp = relevantJavaExperience.trim() || '4+ Years';
+      const finalInterviewer = interviewerName.trim() || user?.name || 'Technical Interviewer';
 
       setGenerationStep('Synthesizing structured questions & scenario challenges...');
 
       const result = await generateInterviewQuestions(
         {
-          candidateName,
-          jobPosition,
-          totalExperience,
-          relevantJavaExperience,
-          candidateBackground,
+          candidateName: finalCandidateName,
+          jobPosition: finalJobPosition,
+          totalExperience: finalExperience,
+          relevantJavaExperience: finalJavaExp,
+          candidateBackground: candidateBackground.trim() || undefined,
           difficulty,
           durationMinutes,
           selectedTopics,
-          customInstructions,
+          customInstructions: customInstructions.trim() || undefined,
           dsaProblemCount,
           enableFollowUps,
           enableScenarios,
@@ -178,24 +211,24 @@ export function NewInterviewPage({ onStartSession, onCancel }: NewInterviewPageP
 
       const newSession: InterviewSession = {
         id: sessionId,
-        candidateName,
-        candidateEmail,
-        jobPosition,
-        totalExperience,
-        relevantJavaExperience,
-        interviewerName,
-        candidateBackground,
+        candidateName: finalCandidateName,
+        candidateEmail: candidateEmail.trim() || undefined,
+        jobPosition: finalJobPosition,
+        totalExperience: finalExperience,
+        relevantJavaExperience: finalJavaExp,
+        interviewerName: finalInterviewer,
+        candidateBackground: candidateBackground.trim() || undefined,
         difficulty,
         durationMinutes,
         selectedTopics,
-        customInstructions,
+        customInstructions: customInstructions.trim() || undefined,
         dsaLanguage,
         dsaProblemCount,
         enableFollowUps,
         enableScenarios,
-        status: 'in_progress',
+        status: 'draft',
         createdAt: Date.now(),
-        startedAt: Date.now(),
+        startedAt: 0,
         totalElapsedSeconds: 0,
         currentQuestionIndex: 0,
       };
@@ -214,21 +247,66 @@ export function NewInterviewPage({ onStartSession, onCancel }: NewInterviewPageP
     }
   };
 
+  const handleStartWithCalibratedQuestions = async () => {
+    try {
+      const sessionId = `session_${Date.now()}_${Math.random().toString(36).substr(2, 6)}`;
+      const finalCandidateName = candidateName.trim() || 'Candidate';
+      const finalJobPosition = jobPosition.trim() || 'Senior Java Backend Engineer';
+      const finalExperience = totalExperience.trim() || '5+ Years';
+      const finalJavaExp = relevantJavaExperience.trim() || '4+ Years';
+      const finalInterviewer = interviewerName.trim() || user?.name || 'Technical Interviewer';
+
+      const customizedQuestions = MOCK_QUESTIONS.map((q) => ({
+        ...q,
+        id: `q_${Date.now()}_${q.number}`,
+      }));
+
+      const newSession: InterviewSession = {
+        id: sessionId,
+        candidateName: finalCandidateName,
+        candidateEmail: candidateEmail.trim() || undefined,
+        jobPosition: finalJobPosition,
+        totalExperience: finalExperience,
+        relevantJavaExperience: finalJavaExp,
+        interviewerName: finalInterviewer,
+        candidateBackground: candidateBackground.trim() || undefined,
+        difficulty,
+        durationMinutes,
+        selectedTopics,
+        customInstructions: customInstructions.trim() || undefined,
+        dsaLanguage,
+        dsaProblemCount,
+        enableFollowUps,
+        enableScenarios,
+        status: 'draft',
+        createdAt: Date.now(),
+        startedAt: 0,
+        totalElapsedSeconds: 0,
+        currentQuestionIndex: 0,
+      };
+
+      await initNewSession(newSession, customizedQuestions, MOCK_DSA_PROBLEMS.slice(0, dsaProblemCount));
+      onStartSession(sessionId);
+    } catch (err: any) {
+      console.error('Failed to initialize fallback session:', err);
+    }
+  };
+
   return (
     <>
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 animate-fade-in space-y-8">
+      <div className="w-full px-[10%] pt-[80px] pb-16 animate-fade-in space-y-6">
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border/80 pb-6">
           <div>
-            <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-cyan-500/10 text-cyan-400 text-xs font-semibold mb-2">
+            <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-primary/10 text-primary text-xs font-semibold mb-2">
               <Sliders className="h-3.5 w-3.5" />
-              <span>Structured Interview Designer</span>
+              <span>Interview Designer</span>
             </div>
             <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground">
               Configure New Interview
             </h1>
             <p className="text-sm text-muted-foreground mt-1">
-              Specify candidate background, target difficulty, duration, and technical competencies.
+              Specify candidate profile, duration, difficulty, and technical focus areas.
             </p>
           </div>
 
@@ -251,71 +329,130 @@ export function NewInterviewPage({ onStartSession, onCancel }: NewInterviewPageP
 
         {/* Error notification if generation failed */}
         {generationError && (
-          <div className="p-4 rounded-xl border border-rose-500/40 bg-rose-500/10 text-rose-300 text-xs sm:text-sm flex items-start justify-between gap-4">
+          <div className="p-4 rounded-xl border border-rose-500/40 bg-rose-500/10 text-rose-300 text-xs sm:text-sm flex items-start justify-between gap-4 shadow-lg animate-fade-in">
             <div className="flex items-start gap-3">
               <AlertTriangle className="h-5 w-5 text-rose-400 shrink-0 mt-0.5" />
-              <div>
-                <p className="font-semibold text-rose-200">Interview Generation Blocked</p>
-                <p className="mt-0.5">{generationError}</p>
-                {!settings.geminiApiKey && (
+              <div className="space-y-2">
+                <div>
+                  <p className="font-semibold text-rose-200">Interview Generation Notice</p>
+                  <p className="mt-0.5 whitespace-pre-line text-xs text-rose-300/90 leading-relaxed font-mono">
+                    {generationError}
+                  </p>
+                </div>
+
+                <div className="flex flex-wrap items-center gap-2.5 pt-1">
                   <Button
+                    type="button"
+                    size="sm"
+                    onClick={handleStartWithCalibratedQuestions}
+                    className="text-xs bg-cyan-600 hover:bg-cyan-500 text-white font-semibold flex items-center gap-1.5 shadow-md shadow-cyan-600/30"
+                  >
+                    <Sparkles className="h-3.5 w-3.5" />
+                    <span>Start with Calibrated Senior Question Bank (Instant)</span>
+                  </Button>
+
+                  <Button
+                    type="button"
                     variant="outline"
                     size="sm"
-                    onClick={() => setIsApiKeyModalOpen(true)}
-                    className="mt-2.5 text-xs border-rose-500/30 text-rose-200 hover:bg-rose-500/20"
+                    onClick={handleStartInterview}
+                    className="text-xs border-zinc-700 bg-zinc-900 hover:bg-zinc-800 text-zinc-200 flex items-center gap-1.5"
                   >
-                    Enter Gemini API Key
+                    <RotateCcw className="h-3.5 w-3.5" />
+                    <span>Retry Gemini AI (90s Timeout)</span>
                   </Button>
-                )}
+                </div>
               </div>
             </div>
             <Button
               variant="ghost"
               size="sm"
               onClick={() => setGenerationError(null)}
-              className="text-xs text-rose-300"
+              className="text-xs text-rose-300 shrink-0"
             >
               Dismiss
             </Button>
           </div>
         )}
 
-        {/* Generating Overlay Modal if active */}
-        {isGenerating && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/85 backdrop-blur-md">
-            <div className="max-w-md w-full rounded-2xl border border-cyan-500/40 bg-card p-8 text-center space-y-6 shadow-2xl">
-              <div className="relative mx-auto w-16 h-16 flex items-center justify-center">
-                <div className="absolute inset-0 rounded-full border-4 border-cyan-500/20 animate-ping" />
-                <div className="h-16 w-16 rounded-full bg-gradient-to-tr from-cyan-500 to-blue-600 flex items-center justify-center shadow-lg shadow-cyan-500/30">
-                  <Sparkles className="h-8 w-8 text-slate-950 animate-spin" />
+        {/* Generating Overlay Modal if active - Portaled directly to document.body to ensure perfect viewport centering & scroll lock */}
+        {isGenerating &&
+          createPortal(
+            <div
+              className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-background/90 backdrop-blur-xl overscroll-none overflow-hidden touch-none select-none"
+              style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, width: '100vw', height: '100vh' }}
+              onWheel={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+              }}
+              onTouchMove={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+              }}
+            >
+              <div className="max-w-md w-full rounded-2xl border border-border bg-card p-8 text-center space-y-6 shadow-2xl animate-scale-in">
+                <div className="relative mx-auto w-16 h-16 flex items-center justify-center">
+                  <div className="absolute inset-0 rounded-full border-4 border-amber-400/30 animate-ping" />
+                  <div className="h-16 w-16 rounded-full bg-gradient-to-tr from-amber-500 via-amber-400 to-yellow-500 flex items-center justify-center shadow-lg shadow-amber-500/30">
+                    <Sparkles className="h-8 w-8 text-stone-950 animate-spin" />
+                  </div>
                 </div>
-              </div>
 
-              <div className="space-y-2">
-                <h3 className="text-xl font-bold text-foreground">
-                  Generating Technical Interview
-                </h3>
-                <p className="text-sm text-cyan-400 font-mono animate-pulse">
-                  {generationStep}
-                </p>
-                <p className="text-xs text-muted-foreground pt-1">
-                  Synthesizing senior-level production scenarios, rubric points, and DSA coding tasks via Google Gemini.
-                </p>
-              </div>
+                <div className="space-y-2">
+                  <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-300/60 text-xs text-amber-800 font-mono font-medium">
+                    <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
+                    <span>{settings.geminiModel || 'gemini-3.5-flash-lite'}</span>
+                    <span className="text-muted-foreground">•</span>
+                    <span className="text-muted-foreground flex items-center gap-1">
+                      <Clock className="h-3 w-3" />
+                      {elapsedSeconds}s
+                    </span>
+                  </div>
 
-              <div className="h-2 w-full bg-secondary rounded-full overflow-hidden">
-                <div className="h-full bg-gradient-to-r from-cyan-500 via-blue-500 to-violet-500 rounded-full animate-pulse-slow w-full" />
+                  <h3 className="text-xl font-bold text-foreground tracking-tight">
+                    Generating Technical Interview
+                  </h3>
+                  <p className="text-sm text-amber-700 font-mono font-semibold animate-pulse">
+                    {generationStep}
+                  </p>
+                  <p className="text-xs text-muted-foreground pt-1 leading-relaxed">
+                    Synthesizing interview questions, evaluation rubrics, and DSA coding challenges via Google Gemini.
+                  </p>
+                </div>
+
+                <div className="h-2 w-full bg-amber-100/70 rounded-full overflow-hidden border border-amber-200">
+                  <div className="h-full bg-gradient-to-r from-amber-500 via-amber-400 to-yellow-500 rounded-full animate-pulse-slow w-full" />
+                </div>
+
+                {/* Instant fallback option if API request takes longer than 12 seconds */}
+                {elapsedSeconds >= 12 && (
+                  <div className="pt-3 border-t border-border animate-fade-in space-y-2">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIsGenerating(false);
+                        handleStartWithCalibratedQuestions();
+                      }}
+                      className="text-xs text-primary hover:text-primary/80 underline underline-offset-4 transition-colors font-medium cursor-pointer"
+                    >
+                      Need to start immediately? Launch with Senior Question Bank &rarr;
+                    </button>
+                    <p className="text-[10px] text-muted-foreground">
+                      Instantly opens workspace with calibrated senior Java & DSA questions without waiting.
+                    </p>
+                  </div>
+                )}
               </div>
-            </div>
-          </div>
-        )}
+            </div>,
+            document.body
+          )}
 
         <form onSubmit={handleStartInterview} className="space-y-8">
           {/* Section 1: Candidate Details */}
-          <Card className="border-border/80">
+          <Card className="border-amber-200/70 bg-white shadow-sm hover:shadow-md transition-shadow duration-200">
             <CardHeader className="pb-4 border-b border-border/50">
               <div className="flex items-center gap-2">
-                <User className="h-4 w-4 text-cyan-400" />
+                <User className="h-4 w-4 text-amber-600" />
                 <CardTitle className="text-base font-semibold">1. Candidate Information</CardTitle>
               </div>
               <CardDescription className="text-xs">
@@ -412,10 +549,10 @@ export function NewInterviewPage({ onStartSession, onCancel }: NewInterviewPageP
           </Card>
 
           {/* Section 2: Interview Calibration (Difficulty & Duration) */}
-          <Card className="border-border/80">
+          <Card className="border-amber-200/70 bg-white shadow-sm hover:shadow-md transition-shadow duration-200">
             <CardHeader className="pb-4 border-b border-border/50">
               <div className="flex items-center gap-2">
-                <Clock className="h-4 w-4 text-violet-400" />
+                <Clock className="h-4 w-4 text-amber-600" />
                 <CardTitle className="text-base font-semibold">2. Duration & Difficulty Level</CardTitle>
               </div>
               <CardDescription className="text-xs">
@@ -438,15 +575,15 @@ export function NewInterviewPage({ onStartSession, onCancel }: NewInterviewPageP
                         onClick={() => setDifficulty(lvl.id as Difficulty)}
                         className={`p-3.5 rounded-xl border cursor-pointer transition-all ${
                           isSelected
-                            ? 'border-cyan-500 bg-cyan-500/10 shadow-sm'
+                            ? 'border-primary bg-primary/10 shadow-sm'
                             : 'border-border/70 hover:border-border bg-secondary/30'
                         }`}
                       >
                         <div className="flex items-center justify-between mb-1">
-                          <span className={`text-xs font-bold ${isSelected ? 'text-cyan-400' : 'text-foreground'}`}>
+                          <span className={`text-xs font-bold ${isSelected ? 'text-primary' : 'text-foreground'}`}>
                             {lvl.label}
                           </span>
-                          {isSelected && <Check className="h-4 w-4 text-cyan-400" />}
+                          {isSelected && <Check className="h-4 w-4 text-primary" />}
                         </div>
                         <p className="text-[11px] text-muted-foreground leading-snug">
                           {lvl.description}
@@ -471,11 +608,11 @@ export function NewInterviewPage({ onStartSession, onCancel }: NewInterviewPageP
                         onClick={() => setDurationMinutes(dur.value)}
                         className={`p-3.5 rounded-xl border cursor-pointer text-center transition-all ${
                           isSelected
-                            ? 'border-cyan-500 bg-cyan-500/10 shadow-sm'
+                            ? 'border-primary bg-primary/10 shadow-sm'
                             : 'border-border/70 hover:border-border bg-secondary/30'
                         }`}
                       >
-                        <span className={`text-sm font-bold block ${isSelected ? 'text-cyan-400' : 'text-foreground'}`}>
+                        <span className={`text-sm font-bold block ${isSelected ? 'text-primary' : 'text-foreground'}`}>
                           {dur.label}
                         </span>
                         <span className="text-[10px] text-muted-foreground">
@@ -491,7 +628,7 @@ export function NewInterviewPage({ onStartSession, onCancel }: NewInterviewPageP
               <div className="p-4 rounded-xl border border-border/80 bg-secondary/20 space-y-2">
                 <div className="flex items-center justify-between text-xs">
                   <span className="font-semibold text-foreground flex items-center gap-1.5">
-                    <Clock className="h-3.5 w-3.5 text-cyan-400" />
+                    <Clock className="h-3.5 w-3.5 text-primary" />
                     <span>Time Allocation Schedule ({durationMinutes} Minutes Total)</span>
                   </span>
                   <span className="text-muted-foreground font-mono">
@@ -524,9 +661,9 @@ export function NewInterviewPage({ onStartSession, onCancel }: NewInterviewPageP
                     <span className="font-bold text-foreground block">7 min</span>
                     <span className="text-[10px] text-muted-foreground">Incidents</span>
                   </div>
-                  <div className="p-2 rounded-lg bg-cyan-950/40 border border-cyan-500/30">
-                    <span className="font-bold text-cyan-400 block">{breakdown.dsaMins} min</span>
-                    <span className="text-[10px] text-cyan-300">DSA Coding</span>
+                  <div className="p-2 rounded-lg bg-primary/10 border border-primary/25">
+                    <span className="font-bold text-primary block">{breakdown.dsaMins} min</span>
+                    <span className="text-[10px] text-muted-foreground">DSA Coding</span>
                   </div>
                 </div>
               </div>
@@ -534,11 +671,11 @@ export function NewInterviewPage({ onStartSession, onCancel }: NewInterviewPageP
           </Card>
 
           {/* Section 3: Technical Topics Multi-Select */}
-          <Card className="border-border/80">
+          <Card className="border-amber-200/70 bg-white shadow-sm hover:shadow-md transition-shadow duration-200">
             <CardHeader className="pb-4 border-b border-border/50">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div className="flex items-center gap-2">
-                  <Code2 className="h-4 w-4 text-emerald-400" />
+                  <Code2 className="h-4 w-4 text-amber-600" />
                   <div>
                     <CardTitle className="text-base font-semibold">
                       3. Technical Competency Topics
@@ -553,7 +690,7 @@ export function NewInterviewPage({ onStartSession, onCancel }: NewInterviewPageP
                   <button
                     type="button"
                     onClick={handleSelectDefaultTopics}
-                    className="text-cyan-400 hover:text-cyan-300 underline"
+                    className="text-amber-800 hover:underline font-semibold"
                   >
                     Select Default (10)
                   </button>
@@ -570,7 +707,7 @@ export function NewInterviewPage({ onStartSession, onCancel }: NewInterviewPageP
             </CardHeader>
 
             <CardContent className="pt-6">
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-3">
                 {TECHNICAL_TOPICS.map((topic, index) => {
                   const isChecked = selectedTopics.includes(topic.id);
                   return (
@@ -579,15 +716,15 @@ export function NewInterviewPage({ onStartSession, onCancel }: NewInterviewPageP
                       onClick={() => handleToggleTopic(topic.id)}
                       className={`p-3 rounded-xl border cursor-pointer transition-all flex items-start gap-3 select-none ${
                         isChecked
-                          ? 'border-cyan-500/60 bg-cyan-950/20 shadow-sm'
-                          : 'border-border/60 hover:border-border bg-card/40 opacity-70'
+                          ? 'border-amber-400 bg-amber-50/70 shadow-xs'
+                          : 'border-border/60 hover:border-amber-200 bg-white opacity-80'
                       }`}
                     >
                       <div
                         className={`h-4 w-4 rounded mt-0.5 flex items-center justify-center shrink-0 border transition-colors ${
                           isChecked
-                            ? 'bg-cyan-500 border-cyan-500 text-slate-950'
-                            : 'border-border bg-card'
+                            ? 'bg-gradient-to-r from-amber-500 to-yellow-500 border-amber-400 text-stone-950 font-bold'
+                            : 'border-border bg-white'
                         }`}
                       >
                         {isChecked && <Check className="h-3 w-3 stroke-[3]" />}
@@ -611,10 +748,10 @@ export function NewInterviewPage({ onStartSession, onCancel }: NewInterviewPageP
           </Card>
 
           {/* Section 4: DSA & Custom Directives */}
-          <Card className="border-border/80">
+          <Card className="border-amber-200/70 bg-white shadow-sm hover:shadow-md transition-shadow duration-200">
             <CardHeader className="pb-4 border-b border-border/50">
               <div className="flex items-center gap-2">
-                <Sparkles className="h-4 w-4 text-cyan-400" />
+                <Sparkles className="h-4 w-4 text-amber-600" />
                 <CardTitle className="text-base font-semibold">4. DSA & Advanced Directives</CardTitle>
               </div>
               <CardDescription className="text-xs">
@@ -653,7 +790,7 @@ export function NewInterviewPage({ onStartSession, onCancel }: NewInterviewPageP
                         onClick={() => setDsaProblemCount(num)}
                         className={`flex-1 py-2 rounded-lg text-xs font-semibold border transition-all ${
                           dsaProblemCount === num
-                            ? 'border-cyan-500 bg-cyan-500/15 text-cyan-300'
+                            ? 'border-primary bg-primary/15 text-primary'
                             : 'border-border/70 hover:bg-muted text-muted-foreground'
                         }`}
                       >
@@ -677,7 +814,7 @@ export function NewInterviewPage({ onStartSession, onCancel }: NewInterviewPageP
                       type="checkbox"
                       checked={enableFollowUps}
                       onChange={(e) => setEnableFollowUps(e.target.checked)}
-                      className="rounded border-border text-cyan-500 focus:ring-cyan-500 h-4 w-4"
+                      className="rounded border-border text-primary focus:ring-primary h-4 w-4"
                     />
                   </div>
 
@@ -694,7 +831,7 @@ export function NewInterviewPage({ onStartSession, onCancel }: NewInterviewPageP
                       type="checkbox"
                       checked={enableScenarios}
                       onChange={(e) => setEnableScenarios(e.target.checked)}
-                      className="rounded border-border text-cyan-500 focus:ring-cyan-500 h-4 w-4"
+                      className="rounded border-border text-primary focus:ring-primary h-4 w-4"
                     />
                   </div>
                 </div>
@@ -711,24 +848,25 @@ export function NewInterviewPage({ onStartSession, onCancel }: NewInterviewPageP
                   rows={6}
                   className="text-xs"
                 />
-                <p className="text-[11px] text-muted-foreground mt-1.5 leading-relaxed">
-                  These instructions are passed directly to Gemini to shape question focus, tone, and depth.
-                </p>
               </div>
             </CardContent>
           </Card>
 
           {/* Action Footer */}
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-4 border-t border-border/80">
-            <Button type="button" variant="outline" onClick={onCancel} className="w-full sm:w-auto">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={onCancel}
+              className="h-10 px-5 text-sm font-semibold rounded-lg w-full sm:w-auto"
+            >
               Cancel & Return to Dashboard
             </Button>
 
             <Button
               type="submit"
-              size="lg"
               disabled={isGenerating}
-              className="w-full sm:w-auto flex items-center justify-center gap-2 font-semibold shadow-xl shadow-cyan-500/25"
+              className="h-10 px-5 text-sm font-bold rounded-lg w-full sm:w-auto flex items-center justify-center gap-2 shadow-md shadow-primary/20"
             >
               <Sparkles className="h-4 w-4" />
               <span>Generate Questions & Launch Workspace</span>
@@ -737,11 +875,6 @@ export function NewInterviewPage({ onStartSession, onCancel }: NewInterviewPageP
           </div>
         </form>
       </div>
-
-      <ApiKeyModal
-        isOpen={isApiKeyModalOpen}
-        onClose={() => setIsApiKeyModalOpen(false)}
-      />
     </>
   );
 }

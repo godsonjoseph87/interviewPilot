@@ -4,24 +4,47 @@ import type {
   GenerateQuestionsParams,
   GeneratedQuestionsResult,
   RegenerateQuestionParams,
+  GenerateCustomQuestionParams,
+  RegenerateDsaParams,
+  AskInterviewerAssistantParams,
   EvaluateDsaParams,
   GenerateReportParams,
   AIReportResult,
+  AdaptInterviewQuestionsParams,
+  AdaptInterviewQuestionsResult,
+  GenerateCopilotProbesParams,
 } from './AIProvider';
-import type { Question, DsaReview } from '@/types';
+import type { Question, DsaProblem, DsaReview, ContextualAlternative, CopilotProbe } from '@/types';
 import { getApiKey } from '@/services/storage/keyStorage';
 import {
   MOCK_QUESTIONS,
   MOCK_DSA_PROBLEMS,
   MOCK_DSA_REVIEW,
   MOCK_REPORT_RESULT,
+  MOCK_EXTRACTED_CONTEXT,
+  generateMockContextualAlternatives,
+  generateMockCustomQuestion,
+  generateMockCopilotProbes,
+  generateMockRegeneratedDsaProblem,
+  generateMockAssistantResponse,
 } from './mockData';
 
-let currentProvider: AIProvider = new GeminiProvider('gemini-2.5-flash');
+let currentProvider: AIProvider = new GeminiProvider('gemini-3.5-flash-lite');
 
 export function setAIModel(modelName: string) {
+  // If model is discontinued or known for 4-minute overload timeouts, automatically route to gemini-3.5-flash-lite
+  const effectiveModel =
+    modelName === 'gemini-3.8-flash' ||
+    modelName === 'gemini-2.5-flash' ||
+    modelName === 'gemini-2.0-flash' ||
+    modelName === 'gemini-1.5-flash' ||
+    modelName === 'gemini-3.1-pro-preview' ||
+    modelName === 'gemini-3-flash'
+      ? 'gemini-3.5-flash-lite'
+      : modelName;
+
   if (currentProvider instanceof GeminiProvider) {
-    currentProvider.setModel(modelName);
+    currentProvider.setModel(effectiveModel);
   }
 }
 
@@ -51,7 +74,7 @@ export async function generateInterviewQuestions(
       };
     }
     throw new Error(
-      'Gemini API key is required. Please add your API key in Settings to generate questions with Google Gemini.'
+      'AI service is unavailable. Please verify system environment configuration.'
     );
   }
 
@@ -97,10 +120,29 @@ export async function regenerateQuestion(
         maxScore: 10,
       };
     }
-    throw new Error('Gemini API key is required to regenerate questions.');
+    throw new Error('AI service is unavailable to regenerate questions.');
   }
 
   return await currentProvider.regenerateQuestion(params);
+}
+
+/**
+ * High-level service: generateCustomQuestion / replace with interviewer's custom question
+ */
+export async function generateCustomQuestion(
+  params: GenerateCustomQuestionParams,
+  allowFallbackOnMissingKey: boolean = false
+): Promise<ContextualAlternative> {
+  const apiKey = getApiKey();
+  if (!apiKey) {
+    if (allowFallbackOnMissingKey) {
+      console.warn('No Gemini API key configured. Formulating calibrated mock custom question.');
+      return generateMockCustomQuestion(params);
+    }
+    throw new Error('AI service is unavailable to formulate custom question.');
+  }
+
+  return await currentProvider.generateCustomQuestion(params);
 }
 
 /**
@@ -120,7 +162,7 @@ export async function evaluateDsaSubmission(
       };
     }
     throw new Error(
-      'Gemini API key is required. Please configure your API key in Settings to review code with AI.'
+      'AI service is unavailable to review code.'
     );
   }
 
@@ -152,10 +194,99 @@ export async function generateFinalInterviewReport(
       };
     }
     throw new Error(
-      'Gemini API key is required. Please configure your API key in Settings to generate the AI evaluation report.'
+      'AI service is unavailable to generate the evaluation report.'
     );
   }
 
   return await currentProvider.generateFinalReport(params);
+}
+
+/**
+ * High-level service: adaptInterviewQuestions
+ */
+export async function adaptInterviewQuestions(
+  params: AdaptInterviewQuestionsParams,
+  allowFallbackOnMissingKey: boolean = false
+): Promise<AdaptInterviewQuestionsResult> {
+  const apiKey = getApiKey();
+  if (!apiKey) {
+    if (allowFallbackOnMissingKey) {
+      console.warn('No Gemini API key configured. Utilizing calibrated mock adaptive questions.');
+      const allText = params.accumulatedContext.join(' ');
+      const alternatives = generateMockContextualAlternatives(
+        params.upcomingQuestions,
+        allText,
+        params.sessionId
+      );
+      return {
+        extractedContext: {
+          ...MOCK_EXTRACTED_CONTEXT,
+          domain: allText.toLowerCase().includes('ecommerce') || allText.toLowerCase().includes('shopping')
+            ? 'E-commerce & Distributed Order Processing'
+            : 'Enterprise Cloud Backend & Distributed Systems',
+        },
+        alternatives,
+      };
+    }
+    throw new Error('AI service is unavailable to adapt interview questions.');
+  }
+
+  return await currentProvider.adaptInterviewQuestions(params);
+}
+
+/**
+ * High-level service: generateCopilotProbes
+ */
+export async function generateCopilotProbes(
+  params: GenerateCopilotProbesParams,
+  allowFallbackOnMissingKey: boolean = false
+): Promise<CopilotProbe[]> {
+  const apiKey = getApiKey();
+  if (!apiKey) {
+    if (allowFallbackOnMissingKey) {
+      console.warn('No Gemini API key configured. Utilizing calibrated mock copilot probes.');
+      return generateMockCopilotProbes(params.latestContext, params.sessionId);
+    }
+    throw new Error('AI service is unavailable to generate follow-up probes.');
+  }
+
+  return await currentProvider.generateCopilotProbes(params);
+}
+
+/**
+ * High-level service: regenerateDsaProblem
+ */
+export async function regenerateDsaProblem(
+  params: RegenerateDsaParams,
+  allowFallbackOnMissingKey: boolean = false
+): Promise<DsaProblem> {
+  const apiKey = getApiKey();
+  if (!apiKey) {
+    if (allowFallbackOnMissingKey) {
+      console.warn('No Gemini API key configured. Utilizing calibrated mock regenerated DSA problem.');
+      return generateMockRegeneratedDsaProblem(params.existingProblem.id, params.avoidTitles);
+    }
+    throw new Error('AI service is unavailable to refresh DSA problem.');
+  }
+
+  return await currentProvider.regenerateDsaProblem(params);
+}
+
+/**
+ * High-level service: askInterviewerAssistant
+ */
+export async function askInterviewerAssistant(
+  params: AskInterviewerAssistantParams,
+  allowFallbackOnMissingKey: boolean = false
+): Promise<string> {
+  const apiKey = getApiKey();
+  if (!apiKey) {
+    if (allowFallbackOnMissingKey) {
+      return generateMockAssistantResponse(params.problem, params.userQuery);
+    }
+    throw new Error('AI service is unavailable.');
+  }
+
+  return await currentProvider.askInterviewerAssistant(params);
 }
 

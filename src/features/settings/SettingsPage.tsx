@@ -1,7 +1,6 @@
 import React, { useState, useRef } from 'react';
 import {
   Settings as SettingsIcon,
-  KeyRound,
   Cpu,
   Sliders,
   Sun,
@@ -11,21 +10,16 @@ import {
   Upload,
   Trash2,
   CheckCircle2,
-  ShieldAlert,
   Info,
-  ExternalLink,
-  Eye,
-  EyeOff,
-  User,
 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/Card';
 import { Modal } from '@/components/ui/Modal';
 import { useSettingsStore } from '@/store/useSettingsStore';
-import { useAuthStore } from '@/store/useAuthStore';
 import {
   AVAILABLE_MODELS,
+  DEFAULT_GEMINI_MODEL,
   DURATION_OPTIONS,
   DIFFICULTY_LEVELS,
   TECHNICAL_TOPICS,
@@ -35,20 +29,14 @@ import {
   importDatabaseBackup,
   clearAllLocalData,
 } from '@/services/db/exportImport';
-import { ENV_GOOGLE_CLIENT_ID, ENV_GOOGLE_CLIENT_SECRET, ENV_GEMINI_API_KEY } from '@/lib/env';
 import type { Difficulty } from '@/types';
 
 export function SettingsPage() {
-  const { settings, updateSettings, updateApiKey, setTheme } = useSettingsStore();
-  const { user } = useAuthStore();
+  const { settings, updateSettings, setTheme } = useSettingsStore();
 
   // Local Form States
-  const [apiKeyInput, setApiKeyInput] = useState(settings.geminiApiKey || '');
-  const [showKey, setShowKey] = useState(false);
-  const [saveKeyLocally, setSaveKeyLocally] = useState(settings.saveKeyLocally);
-  const [selectedModel, setSelectedModel] = useState(settings.geminiModel || 'gemini-2.5-flash');
+  const [selectedModel, setSelectedModel] = useState(settings.geminiModel || DEFAULT_GEMINI_MODEL);
   const [customModelId, setCustomModelId] = useState('');
-  const [googleClientId, setGoogleClientId] = useState(settings.googleClientId || '');
 
   // Defaults
   const [defaultDuration, setDefaultDuration] = useState(settings.defaultDuration || 60);
@@ -78,14 +66,10 @@ export function SettingsPage() {
   const handleSaveAll = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Save API key
-    await updateApiKey(apiKeyInput.trim(), saveKeyLocally);
-
-    // Save other settings
+    // Save model and interview defaults
     const activeModel = customModelId.trim() ? customModelId.trim() : selectedModel;
     await updateSettings({
       geminiModel: activeModel,
-      googleClientId: googleClientId.trim(),
       defaultDuration,
       defaultDifficulty,
       defaultTopics,
@@ -148,19 +132,19 @@ export function SettingsPage() {
   };
 
   return (
-    <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8 animate-fade-in">
+    <div className="w-full px-[10%] pt-[80px] pb-16 space-y-6 animate-fade-in">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border/80 pb-6">
         <div>
-          <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-violet-500/10 text-violet-400 text-xs font-semibold mb-2">
-            <SettingsIcon className="h-3.5 w-3.5" />
+          <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-amber-500/10 border border-amber-300/50 text-amber-800 text-xs font-semibold mb-2">
+            <SettingsIcon className="h-3.5 w-3.5 text-amber-600" />
             <span>Preferences & Integration</span>
           </div>
           <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground">
             Application Settings
           </h1>
           <p className="text-sm text-muted-foreground mt-1">
-            Configure Google Gemini credentials, model routing, UI themes, and local storage backups.
+            Configure model routing, default interview parameters, UI themes, and local storage backups.
           </p>
         </div>
 
@@ -173,147 +157,11 @@ export function SettingsPage() {
       </div>
 
       <form onSubmit={handleSaveAll} className="space-y-8">
-        {/* Section 1: Gemini API Credentials */}
-        <Card className="border-border/80">
-          <CardHeader className="pb-4 border-b border-border/50">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <KeyRound className="h-4 w-4 text-cyan-400" />
-                <CardTitle className="text-base font-semibold">
-                  Google Gemini API Integration
-                </CardTitle>
-              </div>
-              {apiKeyInput && (
-                <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-semibold">
-                  {apiKeyInput === ENV_GEMINI_API_KEY ? 'Loaded from .env' : 'Custom Configured'}
-                </span>
-              )}
-            </div>
-            <CardDescription className="text-xs">
-              Direct browser-to-Google Gemini API credentials
-            </CardDescription>
-          </CardHeader>
-
-          <CardContent className="pt-6 space-y-5">
-            {/* Security Warning Callout */}
-            <div className="p-4 rounded-xl border border-amber-500/30 bg-amber-500/10 text-amber-200/90 text-xs space-y-2">
-              <div className="flex items-center gap-2 font-bold text-amber-300">
-                <ShieldAlert className="h-4 w-4 shrink-0" />
-                <span>Security Notice: Browser-Based Execution</span>
-              </div>
-              <p className="leading-relaxed">
-                InterviewPilot AI operates entirely inside your web browser. No API key is ever embedded into source code or build files. When you enter a key here, requests are sent directly from your browser to Google GenAI servers.
-              </p>
-              <p className="leading-relaxed font-semibold">
-                Warning: Browser-based API keys can theoretically be extracted by anyone with access to this browser's Developer Tools. We recommend using a key restricted to Google Gemini API or keeping it strictly in-memory.
-              </p>
-            </div>
-
-            <div>
-              <label className="block text-xs font-semibold text-foreground mb-1.5">
-                Gemini API Key
-              </label>
-              <div className="relative flex items-center">
-                <Input
-                  type={showKey ? 'text' : 'password'}
-                  placeholder="AIzaSy..."
-                  value={apiKeyInput}
-                  onChange={(e) => setApiKeyInput(e.target.value)}
-                  className="font-mono text-sm pr-10"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowKey(!showKey)}
-                  className="absolute right-3 text-muted-foreground hover:text-foreground"
-                >
-                  {showKey ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                </button>
-              </div>
-
-              <div className="flex items-center justify-between mt-1.5 text-xs text-muted-foreground">
-                <span>Direct client integration with official @google/genai SDK</span>
-                <a
-                  href="https://aistudio.google.com/app/apikey"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-cyan-400 hover:text-cyan-300 flex items-center gap-1 hover:underline font-medium"
-                >
-                  <span>Google AI Studio Key Console</span>
-                  <ExternalLink className="h-3 w-3" />
-                </a>
-              </div>
-            </div>
-
-            <div className="flex items-start gap-2.5 pt-1">
-              <input
-                type="checkbox"
-                id="persistKeySetting"
-                checked={saveKeyLocally}
-                onChange={(e) => setSaveKeyLocally(e.target.checked)}
-                className="mt-0.5 rounded border-border bg-card text-cyan-500 focus:ring-cyan-500 h-4 w-4"
-              />
-              <label htmlFor="persistKeySetting" className="text-xs text-muted-foreground cursor-pointer leading-snug">
-                <span className="font-semibold text-foreground">
-                  Persist API key locally in this browser (IndexedDB & LocalStorage)
-                </span>
-                <br />
-                If left unchecked, your key will be retained only in session memory and cleared when the window is closed.
-              </label>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Section: Google Identity & OAuth */}
-        <Card className="border-border/80">
-          <CardHeader className="pb-4 border-b border-border/50">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <User className="h-4 w-4 text-emerald-400" />
-                <CardTitle className="text-base font-semibold">
-                  Google Identity Services (OAuth)
-                </CardTitle>
-              </div>
-              {googleClientId && (
-                <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-semibold">
-                  {googleClientId === ENV_GOOGLE_CLIENT_ID ? 'Loaded from .env' : 'Custom Configured'}
-                </span>
-              )}
-            </div>
-            <CardDescription className="text-xs">
-              Client configuration for Google sign-in on the login screen
-            </CardDescription>
-          </CardHeader>
-
-          <CardContent className="pt-6 space-y-4">
-            <div>
-              <label className="block text-xs font-semibold text-foreground mb-1">
-                Google Client ID
-              </label>
-              <Input
-                placeholder="xyz.apps.googleusercontent.com"
-                value={googleClientId}
-                onChange={(e) => setGoogleClientId(e.target.value)}
-                className="text-xs font-mono"
-              />
-              <p className="text-[11px] text-muted-foreground mt-1.5 leading-relaxed">
-                Detected from <code className="text-cyan-400 font-mono">.env</code> (<code className="text-cyan-400 font-mono">GOOGLE_CLIENT_ID</code>). Used by Google Identity Services SDK to render the sign-in button.
-              </p>
-            </div>
-
-            <div className="p-3 rounded-lg bg-secondary/30 border border-border/60 text-xs text-muted-foreground space-y-1">
-              <p className="font-semibold text-foreground">Google Cloud Console Configuration:</p>
-              <p className="leading-relaxed">
-                Ensure <code className="text-cyan-300 font-mono">http://localhost:5173</code> is listed under <strong>Authorized JavaScript origins</strong> in your Google Cloud OAuth 2.0 Client credentials.
-              </p>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Section 2: Gemini Model Selection */}
-        <Card className="border-border/80">
+        {/* Section 1: Gemini Model Selection */}
+        <Card className="border-amber-200/70 bg-white shadow-sm hover:shadow-md transition-shadow duration-200">
           <CardHeader className="pb-4 border-b border-border/50">
             <div className="flex items-center gap-2">
-              <Cpu className="h-4 w-4 text-violet-400" />
+              <Cpu className="h-4 w-4 text-amber-600" />
               <CardTitle className="text-base font-semibold">
                 Gemini Model Selection
               </CardTitle>
@@ -336,13 +184,13 @@ export function SettingsPage() {
                     }}
                     className={`p-3.5 rounded-xl border cursor-pointer transition-all ${
                       isSelected
-                        ? 'border-violet-500 bg-violet-500/10 shadow-sm'
-                        : 'border-border/70 hover:border-border bg-secondary/30'
+                        ? 'border-amber-400 bg-amber-50/70 shadow-xs'
+                        : 'border-border/70 hover:border-amber-200 bg-secondary/30'
                     }`}
                   >
                     <div className="flex items-center justify-between">
                       <span className="text-xs font-bold text-foreground">{m.name}</span>
-                      <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-secondary text-cyan-300">
+                      <span className="text-[10px] font-mono font-semibold px-2 py-0.5 rounded bg-amber-500/15 text-amber-900 border border-amber-300/40">
                         {m.badge}
                       </span>
                     </div>
@@ -359,7 +207,7 @@ export function SettingsPage() {
                 Custom Model Override (Optional)
               </label>
               <Input
-                placeholder="e.g. gemini-2.5-flash or experimental model ID"
+                placeholder="e.g. gemini-3.8-flash or experimental model ID"
                 value={customModelId}
                 onChange={(e) => setCustomModelId(e.target.value)}
                 className="text-xs font-mono"
@@ -372,10 +220,10 @@ export function SettingsPage() {
         </Card>
 
         {/* Section 3: Interview Defaults */}
-        <Card className="border-border/80">
+        <Card className="border-amber-200/70 bg-white shadow-sm hover:shadow-md transition-shadow duration-200">
           <CardHeader className="pb-4 border-b border-border/50">
             <div className="flex items-center gap-2">
-              <Sliders className="h-4 w-4 text-blue-400" />
+              <Sliders className="h-4 w-4 text-amber-600" />
               <CardTitle className="text-base font-semibold">
                 Default Interview Parameters
               </CardTitle>
@@ -438,15 +286,15 @@ export function SettingsPage() {
                       onClick={() => toggleTopic(topic.id)}
                       className={`p-2 rounded-lg border cursor-pointer select-none flex items-center gap-2.5 transition-colors ${
                         isChecked
-                          ? 'border-cyan-500/50 bg-cyan-950/20 text-foreground'
-                          : 'border-border/60 bg-card/40 text-muted-foreground opacity-75'
+                          ? 'border-amber-400 bg-amber-50/70 text-foreground shadow-2xs'
+                          : 'border-border/60 bg-white text-muted-foreground opacity-75'
                       }`}
                     >
                       <input
                         type="checkbox"
                         checked={isChecked}
                         onChange={() => {}}
-                        className="rounded border-border text-cyan-500 focus:ring-cyan-500 h-3.5 w-3.5"
+                        className="rounded border-amber-300 text-amber-500 focus:ring-amber-500 h-3.5 w-3.5"
                       />
                       <span className="truncate">{topic.name}</span>
                     </div>
@@ -458,7 +306,7 @@ export function SettingsPage() {
         </Card>
 
         {/* Section 4: Theme Preferences */}
-        <Card className="border-border/80">
+        <Card className="border-amber-200/70 bg-white shadow-sm hover:shadow-md transition-shadow duration-200">
           <CardHeader className="pb-4 border-b border-border/50">
             <CardTitle className="text-base font-semibold">Appearance & Theme</CardTitle>
           </CardHeader>
@@ -471,12 +319,12 @@ export function SettingsPage() {
                   onClick={() => setTheme(t)}
                   className={`p-3.5 rounded-xl border text-center transition-all capitalize font-semibold text-xs flex items-center justify-center gap-2 ${
                     settings.theme === t
-                      ? 'border-cyan-500 bg-cyan-500/15 text-cyan-300'
+                      ? 'border-amber-400 bg-amber-50/80 text-amber-950 font-bold shadow-xs'
                       : 'border-border/70 hover:bg-muted text-muted-foreground'
                   }`}
                 >
                   {t === 'dark' && <Moon className="h-4 w-4" />}
-                  {t === 'light' && <Sun className="h-4 w-4" />}
+                  {t === 'light' && <Sun className="h-4 w-4 text-amber-600" />}
                   {t === 'system' && <Cpu className="h-4 w-4" />}
                   <span>{t}</span>
                 </button>
@@ -486,10 +334,10 @@ export function SettingsPage() {
         </Card>
 
         {/* Section 5: Local Data Management (Export / Import / Clear) */}
-        <Card className="border-border/80">
+        <Card className="border-amber-200/70 bg-white shadow-sm hover:shadow-md transition-shadow duration-200">
           <CardHeader className="pb-4 border-b border-border/50">
             <div className="flex items-center gap-2">
-              <Database className="h-4 w-4 text-emerald-400" />
+              <Database className="h-4 w-4 text-amber-600" />
               <CardTitle className="text-base font-semibold">
                 Local Database & Backup Management
               </CardTitle>
@@ -500,8 +348,8 @@ export function SettingsPage() {
           </CardHeader>
 
           <CardContent className="pt-6 space-y-4">
-            <div className="p-3.5 rounded-xl bg-secondary/30 border border-border/60 flex items-start gap-2.5 text-xs text-muted-foreground leading-relaxed">
-              <Info className="h-4 w-4 text-cyan-400 shrink-0 mt-0.5" />
+            <div className="p-3.5 rounded-xl bg-amber-50/40 border border-amber-200/60 flex items-start gap-2.5 text-xs text-muted-foreground leading-relaxed">
+              <Info className="h-4 w-4 text-amber-600 shrink-0 mt-0.5" />
               <span>
                 <strong>Storage Boundary:</strong> All interviews are stored inside your browser's IndexedDB. Data does not synchronize across separate browsers or incognito profiles unless exported and imported.
               </span>
@@ -513,9 +361,9 @@ export function SettingsPage() {
                 variant="outline"
                 size="sm"
                 onClick={handleExportBackup}
-                className="text-xs flex items-center gap-1.5"
+                className="text-xs flex items-center gap-1.5 border-amber-300/80 bg-white hover:bg-amber-50/70 text-stone-800"
               >
-                <Download className="h-3.5 w-3.5 text-cyan-400" />
+                <Download className="h-3.5 w-3.5 text-amber-600" />
                 <span>Export Local Backup (JSON)</span>
               </Button>
 
@@ -532,9 +380,9 @@ export function SettingsPage() {
                   variant="outline"
                   size="sm"
                   onClick={() => fileInputRef.current?.click()}
-                  className="text-xs flex items-center gap-1.5"
+                  className="text-xs flex items-center gap-1.5 border-amber-300/80 bg-white hover:bg-amber-50/70 text-stone-800"
                 >
-                  <Upload className="h-3.5 w-3.5 text-violet-400" />
+                  <Upload className="h-3.5 w-3.5 text-amber-600" />
                   <span>Import Backup (JSON)</span>
                 </Button>
               </label>
@@ -578,6 +426,7 @@ export function SettingsPage() {
               variant="outline"
               size="sm"
               onClick={() => setIsClearDataModalOpen(false)}
+              className="h-8 px-4 text-xs font-semibold rounded-lg"
             >
               Cancel
             </Button>
@@ -585,6 +434,7 @@ export function SettingsPage() {
               variant="destructive"
               size="sm"
               onClick={handleClearAll}
+              className="h-8 px-4 text-xs font-bold rounded-lg"
             >
               Permanently Clear All
             </Button>

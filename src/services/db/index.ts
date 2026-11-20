@@ -8,6 +8,9 @@ import type {
   DsaProblem,
   FinalReport,
   AppSettings,
+  CandidateContextEntry,
+  ContextualAlternative,
+  CopilotProbe,
 } from '@/types';
 
 export interface StoredQuestion extends Question {
@@ -26,6 +29,9 @@ export class InterviewPilotDatabase extends Dexie {
   dsaSubmissions!: Table<DsaSubmission, number>;
   reports!: Table<FinalReport, string>;
   settings!: Table<AppSettings, string>;
+  contextEntries!: Table<CandidateContextEntry, string>;
+  contextualAlternatives!: Table<ContextualAlternative, string>;
+  copilotProbes!: Table<CopilotProbe, string>;
 
   constructor() {
     super('InterviewPilotDB');
@@ -40,6 +46,13 @@ export class InterviewPilotDatabase extends Dexie {
       reports: 'id, sessionId, candidateName, hiringRecommendation, generatedAt',
       settings: 'id',
     });
+
+    // Schema Version 2 - Adaptive Context & Copilot tables
+    this.version(2).stores({
+      contextEntries: 'id, sessionId, timestamp',
+      contextualAlternatives: 'id, sessionId, originalQuestionId',
+      copilotProbes: 'id, sessionId, category, timestamp',
+    });
   }
 }
 
@@ -51,7 +64,7 @@ export const SETTINGS_KEY = 'app_settings';
 export const DEFAULT_SETTINGS: AppSettings = {
   id: SETTINGS_KEY,
   geminiApiKey: ENV_GEMINI_API_KEY || '',
-  geminiModel: 'gemini-2.5-flash',
+  geminiModel: 'gemini-3.5-flash-lite',
   saveKeyLocally: false,
   googleClientId: ENV_GOOGLE_CLIENT_ID || '',
   defaultDuration: 60,
@@ -68,7 +81,7 @@ export const DEFAULT_SETTINGS: AppSettings = {
     'real_world_problems',
     'dsa',
   ],
-  theme: 'dark',
+  theme: 'light',
 };
 
 // Database helper functions
@@ -78,6 +91,22 @@ export async function getSettings(): Promise<AppSettings> {
     if (!stored) {
       await db.settings.put(DEFAULT_SETTINGS);
       return DEFAULT_SETTINGS;
+    }
+    // Default to the elegant white theme with golden accents
+    if (!stored.theme || stored.theme === 'dark') {
+      stored.theme = 'light';
+    }
+    // Automatically migrate discontinued or overloaded models to ultra-fast, reliable gemini-3.5-flash-lite
+    if (
+      stored.geminiModel === 'gemini-3.8-flash' ||
+      stored.geminiModel === 'gemini-2.5-flash' ||
+      stored.geminiModel === 'gemini-2.0-flash' ||
+      stored.geminiModel === 'gemini-1.5-flash' ||
+      stored.geminiModel === 'gemini-3.1-pro-preview' ||
+      stored.geminiModel === 'gemini-3-flash' ||
+      !stored.geminiModel
+    ) {
+      stored.geminiModel = 'gemini-3.5-flash-lite';
     }
     // Automatically merge ENV_GOOGLE_CLIENT_ID if stored value is empty
     if (!stored.googleClientId && ENV_GOOGLE_CLIENT_ID) {
@@ -113,6 +142,9 @@ export async function getFullSession(sessionId: string) {
   const evaluations = await db.evaluations.where('sessionId').equals(sessionId).toArray();
   const dsaProblems = await db.dsaProblems.where('sessionId').equals(sessionId).sortBy('number');
   const dsaSubmissions = await db.dsaSubmissions.where('sessionId').equals(sessionId).toArray();
+  const contextEntries = await db.contextEntries.where('sessionId').equals(sessionId).sortBy('timestamp');
+  const contextualAlternatives = await db.contextualAlternatives.where('sessionId').equals(sessionId).toArray();
+  const copilotProbes = await db.copilotProbes.where('sessionId').equals(sessionId).sortBy('timestamp');
   const report = session.reportId ? await db.reports.get(session.reportId) : undefined;
 
   return {
@@ -121,21 +153,41 @@ export async function getFullSession(sessionId: string) {
     evaluations,
     dsaProblems,
     dsaSubmissions,
+    contextEntries,
+    contextualAlternatives,
+    copilotProbes,
     report,
   };
 }
 
 export async function deleteFullSession(sessionId: string): Promise<void> {
-  await db.transaction('rw', [db.sessions, db.questions, db.evaluations, db.dsaProblems, db.dsaSubmissions, db.reports], async () => {
-    await db.sessions.delete(sessionId);
-    await db.questions.where('sessionId').equals(sessionId).delete();
-    await db.evaluations.where('sessionId').equals(sessionId).delete();
-    await db.dsaProblems.where('sessionId').equals(sessionId).delete();
-    await db.dsaSubmissions.where('sessionId').equals(sessionId).delete();
-    const reports = await db.reports.where('sessionId').equals(sessionId).toArray();
-    for (const r of reports) {
-      await db.reports.delete(r.id);
+  await db.transaction(
+    'rw',
+    [
+      db.sessions,
+      db.questions,
+      db.evaluations,
+      db.dsaProblems,
+      db.dsaSubmissions,
+      db.reports,
+      db.contextEntries,
+      db.contextualAlternatives,
+      db.copilotProbes,
+    ],
+    async () => {
+      await db.sessions.delete(sessionId);
+      await db.questions.where('sessionId').equals(sessionId).delete();
+      await db.evaluations.where('sessionId').equals(sessionId).delete();
+      await db.dsaProblems.where('sessionId').equals(sessionId).delete();
+      await db.dsaSubmissions.where('sessionId').equals(sessionId).delete();
+      await db.contextEntries.where('sessionId').equals(sessionId).delete();
+      await db.contextualAlternatives.where('sessionId').equals(sessionId).delete();
+      await db.copilotProbes.where('sessionId').equals(sessionId).delete();
+      const reports = await db.reports.where('sessionId').equals(sessionId).toArray();
+      for (const r of reports) {
+        await db.reports.delete(r.id);
+      }
     }
-  });
+  );
 }
 

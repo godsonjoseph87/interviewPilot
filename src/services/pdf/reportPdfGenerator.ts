@@ -276,10 +276,16 @@ export function generateReportPdf(report: FinalReport): void {
 
   const qRows = report.detailedQuestionAssessment.map((q) => [
     q.category,
-    q.questionTitle,
+    q.isContextual ? `[AI Contextual] ${q.questionTitle}` : `[Original] ${q.questionTitle}`,
     q.interviewerEvaluation.toUpperCase(),
     `${q.scoreAwarded} / ${q.maxScore}`,
-    q.notes || '-',
+    q.notes
+      ? q.isContextual && q.projectContextUsed
+        ? `${q.notes} (Domain Context: ${q.projectContextUsed})`
+        : q.notes
+      : q.isContextual && q.projectContextUsed
+      ? `Domain Context: ${q.projectContextUsed}`
+      : '-',
   ]);
 
   autoTable(doc, {

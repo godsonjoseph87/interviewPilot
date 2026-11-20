@@ -21,6 +21,60 @@ export interface Question {
   maxScore: number;
 }
 
+export interface CandidateContextEntry {
+  id: string;
+  sessionId: string;
+  timestamp: number;
+  text: string;
+}
+
+export interface ExtractedProjectContext {
+  domain: string;
+  technologies: string[];
+  architecture: string[];
+  communication: string[];
+  businessCapabilities: string[];
+  potentialScenarios: string[];
+  clarificationProbes: string[];
+}
+
+export interface ContextualAlternative {
+  id: string;
+  sessionId: string;
+  originalQuestionId: string;
+  title: string;
+  question: string;
+  category: string;
+  difficulty: string;
+  projectContextUsed: string;
+  reasonForAdaptation: string;
+  expectedAnswer: string;
+  evaluationPoints: string[];
+  commonMistakes: string[];
+  redFlags: string[];
+  followUpQuestions: string[];
+  suggestedTimeMinutes: number;
+  evaluationRubric: string;
+  competency: string;
+  isCustomEdited?: boolean;
+}
+
+export type CopilotCategory =
+  | 'Reliability'
+  | 'Data Consistency'
+  | 'Performance'
+  | 'Practical Implementation'
+  | 'General';
+
+export interface CopilotProbe {
+  id: string;
+  sessionId: string;
+  category: CopilotCategory;
+  probeQuestion: string;
+  rationale: string;
+  timestamp: number;
+}
+
 export interface QuestionEvaluation {
   id?: number;
   sessionId: string;
@@ -30,6 +84,8 @@ export interface QuestionEvaluation {
   percentage: number;
   interviewerNotes: string;
   evaluatedAt: number;
+  selectedVersion?: 'original' | string; // 'original' or contextual alternative ID
+  versionSelectionReason?: string;
 }
 
 export interface DsaProblem {
@@ -47,6 +103,8 @@ export interface DsaProblem {
   expectedSpaceComplexity: string;
   edgeCases: string[];
   suggestedTimeMinutes: number;
+  workingCode?: string;
+  detailedExplanation?: string;
 }
 
 export interface DsaReview {
@@ -103,6 +161,8 @@ export interface InterviewSession {
   totalElapsedSeconds: number;
   currentQuestionIndex: number;
   reportId?: string;
+  contextVersion?: number;
+  consolidatedContext?: ExtractedProjectContext;
 }
 
 export interface CompetencyScore {
@@ -153,7 +213,20 @@ export interface FinalReport {
     scoreAwarded: number;
     maxScore: number;
     notes: string;
+    isContextual?: boolean;
+    contextualAlternativeId?: string;
+    adaptedQuestionText?: string;
+    originalQuestionText?: string;
+    reasonForSelection?: string;
+    projectContextUsed?: string;
   }>;
+  candidateContextSummary?: {
+    domain?: string;
+    technologies?: string[];
+    architecture?: string[];
+    workflows?: string[];
+    historyCount?: number;
+  };
   dsaAssessment: {
     summary: string;
     problems: Array<{

@@ -41,13 +41,18 @@ export const DURATION_OPTIONS = [
 ] as const;
 
 export const AVAILABLE_MODELS = [
-  { id: 'gemini-2.5-flash', name: 'Gemini 2.5 Flash', badge: 'Recommended • Fast & Smart' },
-  { id: 'gemini-2.5-pro', name: 'Gemini 2.5 Pro', badge: 'Deep Reasoning' },
-  { id: 'gemini-1.5-flash', name: 'Gemini 1.5 Flash', badge: 'Stable' },
-  { id: 'gemini-1.5-pro', name: 'Gemini 1.5 Pro', badge: 'Legacy Pro' },
+  { id: 'gemini-3.5-flash-lite', name: 'Gemini 3.5 Flash Lite', badge: 'Ultra Fast (1s) • Highly Reliable' },
+  { id: 'gemini-3.5-flash', name: 'Gemini 3.5 Flash', badge: 'Balanced • High Depth' },
+  { id: 'gemini-3.8-flash', name: 'Gemini 3.8 Flash', badge: 'Experimental • High Demand' },
 ] as const;
 
-export const DEFAULT_GEMINI_MODEL = 'gemini-2.5-flash';
+export const DEFAULT_GEMINI_MODEL = 'gemini-3.5-flash-lite';
+
+export const FALLBACK_MODEL_CHAIN: readonly string[] = [
+  'gemini-3.5-flash-lite',
+  'gemini-3.5-flash',
+  'gemini-3.8-flash',
+];
 
 export const DSA_LANGUAGES = [
   { id: 'java', name: 'Java', template: 'class Solution {\n    public static void main(String[] args) {\n        // Your code here\n    }\n}' },

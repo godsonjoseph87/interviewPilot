@@ -2,9 +2,8 @@ import React, { useState } from 'react';
 import { Modal } from '@/components/ui/Modal';
 import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
-import { KeyRound, ShieldAlert, CheckCircle, ExternalLink, Check } from 'lucide-react';
+import { Bot, CheckCircle } from 'lucide-react';
 import { useSettingsStore } from '@/store/useSettingsStore';
-import { ENV_GEMINI_API_KEY } from '@/lib/env';
 
 interface ApiKeyModalProps {
   isOpen: boolean;
@@ -15,12 +14,11 @@ interface ApiKeyModalProps {
 export function ApiKeyModal({ isOpen, onClose, onSuccess }: ApiKeyModalProps) {
   const { settings, updateApiKey } = useSettingsStore();
   const [apiKeyInput, setApiKeyInput] = useState(settings.geminiApiKey || '');
-  const [saveLocally, setSaveLocally] = useState(settings.saveKeyLocally);
   const [isSaved, setIsSaved] = useState(false);
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
-    await updateApiKey(apiKeyInput.trim(), saveLocally);
+    await updateApiKey(apiKeyInput.trim(), true);
     setIsSaved(true);
     setTimeout(() => {
       setIsSaved(false);
@@ -29,94 +27,72 @@ export function ApiKeyModal({ isOpen, onClose, onSuccess }: ApiKeyModalProps) {
     }, 600);
   };
 
+  const isConnected = !!settings.geminiApiKey;
+
   return (
     <Modal
       isOpen={isOpen}
       onClose={onClose}
       title={
         <div className="flex items-center gap-2">
-          <KeyRound className="h-5 w-5 text-cyan-400" />
-          <span>Configure Gemini API Key</span>
+          <Bot className={`h-5 w-5 ${isConnected ? 'text-emerald-500' : 'text-stone-400'}`} />
+          <span>Gemini AI</span>
         </div>
       }
-      description="Enter your Google Gemini API key to enable live AI question generation, DSA code reviews, and evaluation reports."
     >
       <form onSubmit={handleSave} className="space-y-4">
-        {/* Security Notice Box */}
-        <div className="p-3.5 rounded-xl border border-amber-500/30 bg-amber-500/10 text-amber-200/90 text-xs space-y-2">
-          <div className="flex items-center gap-2 font-semibold text-amber-300">
-            <ShieldAlert className="h-4 w-4 shrink-0" />
-            <span>Browser-Based Security Notice</span>
+        {isConnected ? (
+          <div className="flex items-center justify-between p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-xs">
+            <div className="flex items-center gap-2 text-emerald-600 dark:text-emerald-400 font-medium">
+              <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+              <span>AI Connected & Ready</span>
+            </div>
+            <span className="text-[11px] font-mono text-muted-foreground">Active</span>
           </div>
-          <p className="leading-relaxed">
-            This is a client-side web application running entirely in your browser. Any API key entered here communicates directly from your browser to Google Gemini API endpoints without passing through any third-party backend servers.
-          </p>
-          <p className="leading-relaxed font-medium">
-            Keys can be kept strictly in memory for this session, or saved into your browser's local storage.
-          </p>
-        </div>
+        ) : (
+          <div className="flex items-center gap-2 p-3 rounded-xl bg-stone-100 dark:bg-stone-900 border border-border text-xs text-muted-foreground">
+            <span className="h-2 w-2 rounded-full bg-stone-400" />
+            <span>Not Connected</span>
+          </div>
+        )}
 
         <div>
-          <div className="flex items-center justify-between mb-1.5">
-            <label className="block text-xs font-semibold text-foreground">
-              Gemini API Key
-            </label>
-            {apiKeyInput && (
-              <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-semibold flex items-center gap-1">
-                <Check className="h-3 w-3" />
-                <span>{apiKeyInput === ENV_GEMINI_API_KEY ? 'Loaded from .env' : 'Configured'}</span>
-              </span>
-            )}
-          </div>
+          <label className="block text-xs font-semibold text-foreground mb-1.5">
+            API Key
+          </label>
           <Input
             type="password"
-            placeholder="AIzaSy..."
+            placeholder="Enter Gemini API key (AIzaSy...)"
             value={apiKeyInput}
             onChange={(e) => setApiKeyInput(e.target.value)}
             className="font-mono text-sm"
             autoFocus
           />
-          <div className="flex items-center justify-between mt-1 text-xs text-muted-foreground">
-            <span>Get an API key from Google AI Studio</span>
-            <a
-              href="https://aistudio.google.com/app/apikey"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-cyan-400 hover:text-cyan-300 flex items-center gap-1 hover:underline"
-            >
-              <span>Get API Key</span>
-              <ExternalLink className="h-3 w-3" />
-            </a>
-          </div>
-        </div>
-
-        <div className="flex items-start gap-2.5 pt-1">
-          <input
-            type="checkbox"
-            id="saveLocallyCheck"
-            checked={saveLocally}
-            onChange={(e) => setSaveLocally(e.target.checked)}
-            className="mt-0.5 rounded border-border bg-card text-cyan-500 focus:ring-cyan-500"
-          />
-          <label htmlFor="saveLocallyCheck" className="text-xs text-muted-foreground leading-snug cursor-pointer">
-            <span className="font-semibold text-foreground">Save key locally in this browser</span>
-            <br />
-            If unchecked, the key will only be held in memory and will be erased when the tab closes.
-          </label>
         </div>
 
         <div className="flex items-center justify-end gap-3 pt-3 border-t border-border/60">
-          <Button type="button" variant="outline" onClick={onClose}>
-            Cancel
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={onClose}
+            className="h-8 px-4 text-xs font-semibold rounded-lg"
+          >
+            Close
           </Button>
-          <Button type="submit" disabled={!apiKeyInput.trim()}>
+          <Button
+            type="submit"
+            size="sm"
+            disabled={!apiKeyInput.trim()}
+            className="h-8 px-4 text-xs font-bold rounded-lg"
+          >
             {isSaved ? (
-              <span className="flex items-center gap-1.5 text-emerald-300">
+              <span className="flex items-center gap-1.5 text-emerald-400">
                 <CheckCircle className="h-4 w-4" />
                 <span>Saved</span>
               </span>
             ) : (
-              'Save Key & Continue'
+              'Save Key'
             )}
           </Button>
         </div>
@@ -124,4 +100,3 @@ export function ApiKeyModal({ isOpen, onClose, onSuccess }: ApiKeyModalProps) {
     </Modal>
   );
 }
-

@@ -40,6 +40,7 @@ export function WorkspaceRightPanel({
     totalElapsedSeconds,
     questionElapsedSeconds,
     isPaused,
+    startInterview,
     togglePauseTimer,
     tickTimers,
   } = useInterviewSessionStore();
@@ -78,15 +79,19 @@ export function WorkspaceRightPanel({
 
   const maxScore = currentQuestion.maxScore || 10;
   const currentStatus = currentEval?.status || 'pending';
+  const halfScore = Math.round(maxScore * 0.5); // 5 points for standard 10pt question
 
   const handleEvaluationClick = async (status: EvaluationStatus) => {
     let score = 0;
     if (status === 'correct') {
       score = maxScore;
+      setCustomScoreInput(maxScore);
     } else if (status === 'partially_correct') {
-      score = customScoreInput !== undefined ? customScoreInput : Math.round(maxScore * 0.5);
+      score = halfScore; // Explicitly 5 pts
+      setCustomScoreInput(halfScore);
     } else if (status === 'incorrect') {
       score = 0;
+      setCustomScoreInput(0);
     } else if (status === 'skipped') {
       score = 0;
     }
@@ -129,24 +134,36 @@ export function WorkspaceRightPanel({
             </div>
           </div>
 
-          <Button
-            variant={isPaused ? 'default' : 'outline'}
-            size="sm"
-            onClick={togglePauseTimer}
-            className="h-8 px-2.5 text-xs font-semibold flex items-center gap-1.5"
-          >
-            {isPaused ? (
-              <>
-                <Play className="h-3.5 w-3.5 fill-current text-slate-950" />
-                <span>Resume</span>
-              </>
-            ) : (
-              <>
-                <Pause className="h-3.5 w-3.5 text-amber-400" />
-                <span>Pause</span>
-              </>
-            )}
-          </Button>
+          {session.status === 'draft' ? (
+            <Button
+              variant="default"
+              size="sm"
+              onClick={startInterview}
+              className="h-8 px-3.5 text-xs font-bold flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white"
+            >
+              <Play className="h-3.5 w-3.5 fill-current" />
+              <span>Start</span>
+            </Button>
+          ) : (
+            <Button
+              variant={isPaused ? 'default' : 'outline'}
+              size="sm"
+              onClick={togglePauseTimer}
+              className="h-8 px-2.5 text-xs font-semibold flex items-center gap-1.5"
+            >
+              {isPaused ? (
+                <>
+                  <Play className="h-3.5 w-3.5 fill-current text-slate-950" />
+                  <span>Resume</span>
+                </>
+              ) : (
+                <>
+                  <Pause className="h-3.5 w-3.5 text-amber-400" />
+                  <span>Pause</span>
+                </>
+              )}
+            </Button>
+          )}
         </div>
 
         {/* Current Question Stopwatch */}
@@ -182,7 +199,7 @@ export function WorkspaceRightPanel({
             <button
               type="button"
               onClick={() => handleEvaluationClick('correct')}
-              className={`p-2.5 rounded-xl border text-xs font-bold flex items-center justify-center gap-2 transition-all ${
+              className={`p-2.5 rounded-xl border text-xs font-bold flex items-center justify-center gap-2 transition-all shadow-xs hover:shadow-sm ${
                 currentStatus === 'correct'
                   ? 'bg-emerald-500/20 border-emerald-500 text-emerald-300 shadow-md shadow-emerald-500/10'
                   : 'bg-secondary/40 border-border/60 hover:border-emerald-500/40 text-muted-foreground hover:text-foreground'
@@ -195,20 +212,20 @@ export function WorkspaceRightPanel({
             <button
               type="button"
               onClick={() => handleEvaluationClick('partially_correct')}
-              className={`p-2.5 rounded-xl border text-xs font-bold flex items-center justify-center gap-2 transition-all ${
+              className={`p-2.5 rounded-xl border text-xs font-bold flex items-center justify-center gap-2 transition-all shadow-xs hover:shadow-sm ${
                 currentStatus === 'partially_correct'
                   ? 'bg-cyan-500/20 border-cyan-500 text-cyan-300 shadow-md shadow-cyan-500/10'
                   : 'bg-secondary/40 border-border/60 hover:border-cyan-500/40 text-muted-foreground hover:text-foreground'
               }`}
             >
               <MinusCircle className="h-4 w-4 text-cyan-400" />
-              <span>Partial ({customScoreInput} pts)</span>
+              <span>Partial ({halfScore} pts)</span>
             </button>
 
             <button
               type="button"
               onClick={() => handleEvaluationClick('incorrect')}
-              className={`p-2.5 rounded-xl border text-xs font-bold flex items-center justify-center gap-2 transition-all ${
+              className={`p-2.5 rounded-xl border text-xs font-bold flex items-center justify-center gap-2 transition-all shadow-xs hover:shadow-sm ${
                 currentStatus === 'incorrect'
                   ? 'bg-rose-500/20 border-rose-500 text-rose-300 shadow-md shadow-rose-500/10'
                   : 'bg-secondary/40 border-border/60 hover:border-rose-500/40 text-muted-foreground hover:text-foreground'
@@ -221,7 +238,7 @@ export function WorkspaceRightPanel({
             <button
               type="button"
               onClick={() => handleEvaluationClick('skipped')}
-              className={`p-2.5 rounded-xl border text-xs font-bold flex items-center justify-center gap-2 transition-all ${
+              className={`p-2.5 rounded-xl border text-xs font-bold flex items-center justify-center gap-2 transition-all shadow-xs hover:shadow-sm ${
                 currentStatus === 'skipped'
                   ? 'bg-amber-500/20 border-amber-500 text-amber-300 shadow-md shadow-amber-500/10'
                   : 'bg-secondary/40 border-border/60 hover:border-amber-500/40 text-muted-foreground hover:text-foreground'
@@ -282,7 +299,7 @@ export function WorkspaceRightPanel({
             size="sm"
             onClick={prevQuestion}
             disabled={currentQuestionIndex === 0}
-            className="flex-1 text-xs"
+            className="flex-1 h-8 px-3 text-xs font-semibold rounded-lg inline-flex items-center justify-center"
           >
             <ChevronLeft className="h-3.5 w-3.5 mr-1" />
             <span>Previous</span>
@@ -293,7 +310,7 @@ export function WorkspaceRightPanel({
             size="sm"
             onClick={nextQuestion}
             disabled={currentQuestionIndex === questions.length - 1}
-            className="flex-1 text-xs"
+            className="flex-1 h-8 px-3 text-xs font-semibold rounded-lg inline-flex items-center justify-center"
           >
             <span>Next</span>
             <ChevronRight className="h-3.5 w-3.5 ml-1" />
@@ -304,7 +321,7 @@ export function WorkspaceRightPanel({
           variant="success"
           size="default"
           onClick={onFinishInterviewRequest}
-          className="w-full text-xs font-bold flex items-center justify-center gap-2 shadow-lg shadow-emerald-600/20"
+          className="w-full h-9 px-4 text-xs font-bold rounded-lg flex items-center justify-center gap-2 shadow-lg shadow-emerald-600/20"
         >
           <FileCheck className="h-4 w-4" />
           <span>Finish Interview & Generate Report</span>

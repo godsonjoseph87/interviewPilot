@@ -11,6 +11,7 @@ import {
   AlertCircle,
   PlusCircle,
   CheckCircle,
+  FileDown,
 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
@@ -20,6 +21,7 @@ import { ScoreBadge } from '@/components/common/ScoreBadge';
 import { db, deleteFullSession } from '@/services/db';
 import { useInterviewSessionStore } from '@/store/useInterviewSessionStore';
 import { generateReportPdf } from '@/services/pdf/reportPdfGenerator';
+import { generateQuestionsPdf } from '@/services/pdf/questionBankPdfGenerator';
 import type { InterviewSession, FinalReport } from '@/types';
 import { formatDate } from '@/lib/utils';
 import { HIRING_RECOMMENDATIONS } from '@/lib/constants';
@@ -129,13 +131,44 @@ export function HistoryPage({
     return 0;
   });
 
+  const handleDownloadQA = async (session: InterviewSession) => {
+    try {
+      const questions = await db.questions.where('sessionId').equals(session.id).sortBy('number');
+      const dsaProblems = await db.dsaProblems.where('sessionId').equals(session.id).toArray();
+      const rawAlternatives = await db.contextualAlternatives.where('sessionId').equals(session.id).toArray();
+      const contextualAlternatives: Record<string, any[]> = {};
+      rawAlternatives.forEach((alt) => {
+        if (!contextualAlternatives[alt.originalQuestionId]) {
+          contextualAlternatives[alt.originalQuestionId] = [];
+        }
+        contextualAlternatives[alt.originalQuestionId].push(alt);
+      });
+      const rawEvaluations = await db.evaluations.where('sessionId').equals(session.id).toArray();
+      const evaluations: Record<string, any> = {};
+      rawEvaluations.forEach((ev) => {
+        evaluations[ev.questionId] = ev;
+      });
+
+      generateQuestionsPdf({
+        session,
+        questions,
+        dsaProblems,
+        contextualAlternatives,
+        evaluations,
+      });
+    } catch (err) {
+      console.error('Failed to download Q&A PDF:', err);
+      alert('Failed to generate Q&A Guide PDF.');
+    }
+  };
+
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6 animate-fade-in">
+    <div className="w-full px-[10%] pt-[80px] pb-16 space-y-6 animate-fade-in">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border/80 pb-6">
         <div>
-          <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-blue-500/10 text-blue-400 text-xs font-semibold mb-2">
-            <History className="h-3.5 w-3.5" />
+          <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-amber-500/10 border border-amber-300/50 text-amber-800 text-xs font-semibold mb-2">
+            <History className="h-3.5 w-3.5 text-amber-600" />
             <span>Local IndexedDB Database</span>
           </div>
           <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground">
@@ -149,7 +182,7 @@ export function HistoryPage({
         <Button
           size="sm"
           onClick={onCreateNew}
-          className="flex items-center gap-1.5 text-xs font-semibold self-start sm:self-auto"
+          className="h-8 px-4 text-xs font-bold inline-flex items-center gap-1.5 self-start sm:self-auto rounded-lg shadow-md shadow-amber-500/20"
         >
           <PlusCircle className="h-4 w-4" />
           <span>New Interview</span>
@@ -157,7 +190,7 @@ export function HistoryPage({
       </div>
 
       {/* Search, Filter & Sort Toolbar */}
-      <Card className="border-border/80">
+      <Card className="border-amber-200/70 bg-white shadow-sm hover:shadow-md transition-shadow duration-200">
         <CardContent className="p-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 items-center">
           {/* Search Input */}
           <div className="lg:col-span-1">
@@ -226,7 +259,7 @@ export function HistoryPage({
       </Card>
 
       {/* Sessions Table */}
-      <Card className="border-border/80 overflow-hidden">
+      <Card className="border-amber-200/70 bg-white shadow-sm hover:shadow-md transition-shadow duration-200 overflow-hidden">
         <CardContent className="p-0">
           {isLoading ? (
             <div className="py-16 text-center text-xs text-muted-foreground animate-pulse">
@@ -308,9 +341,15 @@ export function HistoryPage({
                           <span
                             className={`inline-flex items-center px-2 py-0.5 rounded text-[11px] font-semibold ${
                               s.status === 'completed'
-                                ? 'bg-emerald-500/10 text-emerald-400'
+                                ? 'bg-emerald-500/10 text-emerald-700 border border-emerald-300'
                                 : s.status === 'in_progress'
-                                ? 'bg-cyan-500/10 text-cyan-400'
+                                ? 'bg-amber-500/10 text-amber-800 border border-amber-300'
+                                : s.status === 'paused'
+                                ? 'bg-amber-100 text-amber-900 border border-amber-300'
+                                : s.status === 'draft'
+                                ? 'bg-amber-500/10 text-amber-700 border border-amber-300'
+                                : s.status === 'abandoned'
+                                ? 'bg-rose-50 text-rose-800 border border-rose-300'
                                 : 'bg-secondary text-muted-foreground'
                             }`}
                           >
@@ -318,6 +357,12 @@ export function HistoryPage({
                               ? 'Completed'
                               : s.status === 'in_progress'
                               ? 'In Progress'
+                              : s.status === 'paused'
+                              ? 'Paused'
+                              : s.status === 'draft'
+                              ? 'Ready to Start'
+                              : s.status === 'abandoned'
+                              ? 'Ended Early'
                               : s.status}
                           </span>
                         </td>
@@ -332,13 +377,23 @@ export function HistoryPage({
                             {s.status === 'completed' ? 'Open Report' : 'Resume'}
                           </Button>
 
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleDownloadQA(s)}
+                            className="h-7 w-7 p-0 text-amber-700 hover:text-amber-900 hover:bg-amber-500/10"
+                            title="Download Questions & Answers Guide PDF"
+                          >
+                            <FileDown className="h-3.5 w-3.5" />
+                          </Button>
+
                           {report && (
                             <Button
                               variant="ghost"
                               size="sm"
                               onClick={() => generateReportPdf(report)}
                               className="h-7 w-7 p-0 text-muted-foreground hover:text-foreground"
-                              title="Download PDF"
+                              title="Download Report PDF"
                             >
                               <Download className="h-3.5 w-3.5" />
                             </Button>
@@ -383,6 +438,7 @@ export function HistoryPage({
               variant="outline"
               size="sm"
               onClick={() => setSessionToDelete(null)}
+              className="h-8 px-4 text-xs font-semibold rounded-lg"
             >
               Cancel
             </Button>
@@ -390,6 +446,7 @@ export function HistoryPage({
               variant="destructive"
               size="sm"
               onClick={handleDelete}
+              className="h-8 px-4 text-xs font-bold rounded-lg"
             >
               Delete Permanently
             </Button>

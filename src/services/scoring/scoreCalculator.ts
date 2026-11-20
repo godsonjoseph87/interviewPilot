@@ -22,7 +22,8 @@ export interface CalculatedScores {
 export function calculateInterviewScores(
   questions: Question[],
   evaluations: QuestionEvaluation[],
-  dsaSubmissions: DsaSubmission[]
+  dsaSubmissions: DsaSubmission[],
+  options?: { excludePending?: boolean }
 ): CalculatedScores {
   const evalMap = new Map<string, QuestionEvaluation>();
   evaluations.forEach((ev) => evalMap.set(ev.questionId, ev));
@@ -42,7 +43,8 @@ export function calculateInterviewScores(
     const currentCat = categoryMap.get(category)!;
 
     // Skipped questions are excluded from scored responses (Section 6)
-    if (ev?.status === 'skipped') {
+    // If ending early and excludePending is enabled, unasked/pending questions are also excluded
+    if (ev?.status === 'skipped' || (options?.excludePending && (!ev || ev.status === 'pending'))) {
       continue;
     }
 

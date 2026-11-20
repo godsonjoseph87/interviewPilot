@@ -13,9 +13,12 @@ import {
   Play,
   Settings as SettingsIcon,
   Search,
+  Square,
+  Trash2,
 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/Card';
+import { Modal } from '@/components/ui/Modal';
 import { StatCard } from '@/components/common/StatCard';
 import { ScoreBadge } from '@/components/common/ScoreBadge';
 import { useAuthStore } from '@/store/useAuthStore';
@@ -30,10 +33,11 @@ interface DashboardPageProps {
 
 export function DashboardPage({ onNavigate }: DashboardPageProps) {
   const { user } = useAuthStore();
-  const { session: activeSession, loadSessionFromDb } = useInterviewSessionStore();
+  const { session: activeSession, loadSessionFromDb, abandonInterview, clearActiveSession } = useInterviewSessionStore();
   const [sessions, setSessions] = useState<InterviewSession[]>([]);
   const [reports, setReports] = useState<FinalReport[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isEndConfirmOpen, setIsEndConfirmOpen] = useState(false);
 
   useEffect(() => {
     async function loadDashboardData() {
@@ -78,21 +82,21 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
   };
 
   return (
-    <div className="space-y-8 animate-fade-in max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="space-y-6 animate-fade-in w-full px-[10%] pt-[80px] pb-16">
       {/* Welcome Banner */}
-      <div className="relative rounded-2xl border border-cyan-500/20 bg-gradient-to-r from-slate-900 via-slate-900 to-cyan-950/40 p-6 sm:p-8 overflow-hidden shadow-xl">
-        <div className="absolute top-0 right-0 w-96 h-96 bg-cyan-500/10 rounded-full blur-3xl pointer-events-none" />
+      <div className="relative rounded-2xl border border-amber-200/80 bg-white p-6 sm:p-8 overflow-hidden shadow-sm">
+        <div className="absolute top-0 right-0 w-96 h-96 bg-gradient-to-bl from-amber-400/15 via-yellow-300/10 to-transparent rounded-full blur-3xl pointer-events-none" />
         <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
-          <div className="space-y-2 max-w-2xl">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 text-xs font-semibold">
-              <Sparkles className="h-3.5 w-3.5" />
+          <div className="space-y-2 max-w-3xl">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-300/60 text-amber-800 text-xs font-semibold">
+              <Sparkles className="h-3.5 w-3.5 text-amber-600" />
               <span>Technical Interviewer Dashboard</span>
             </div>
-            <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-white">
+            <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-foreground">
               Welcome back, {user?.name?.split(' ')[0] || 'Interviewer'}
             </h1>
-            <p className="text-sm text-slate-300 leading-relaxed">
-              Design, conduct, and evaluate structured technical interviews for Java Backend Engineers and Software Architects with Google Gemini.
+            <p className="text-sm text-muted-foreground leading-relaxed">
+              Conduct structured, high-signal technical interviews with adaptive intelligence and automated scoring.
             </p>
           </div>
 
@@ -100,7 +104,7 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
             <Button
               size="lg"
               onClick={() => onNavigate('configure')}
-              className="flex items-center gap-2 text-sm font-semibold shadow-xl shadow-cyan-500/20"
+              className="flex items-center gap-2 text-sm font-semibold shadow-md shadow-amber-500/25"
             >
               <PlusCircle className="h-4 w-4" />
               <span>Start New Interview</span>
@@ -151,47 +155,141 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
       </div>
 
       {/* Active in-progress alert banner if session exists */}
-      {activeSession && activeSession.status === 'in_progress' && (
-        <div className="p-4 rounded-xl border border-cyan-500/40 bg-cyan-950/30 backdrop-blur-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      {activeSession && (activeSession.status === 'in_progress' || activeSession.status === 'paused' || activeSession.status === 'draft') && (
+        <div className="p-4 rounded-xl border border-amber-300/80 bg-gradient-to-r from-amber-500/10 via-amber-400/15 to-yellow-500/10 backdrop-blur-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-xs">
           <div className="flex items-center gap-3">
-            <div className="h-10 w-10 rounded-lg bg-cyan-500/20 border border-cyan-500/40 flex items-center justify-center text-cyan-400">
-              <Play className="h-5 w-5 fill-current" />
+            <div className="h-10 w-10 rounded-lg bg-amber-500/20 border border-amber-300/60 flex items-center justify-center text-amber-800">
+              <Play className="h-5 w-5 fill-current text-amber-600" />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <span className="text-xs font-semibold uppercase tracking-wider text-cyan-400">
-                  Active Interview in Progress
+                <span className="text-xs font-bold uppercase tracking-wider text-amber-900">
+                  {activeSession.status === 'draft'
+                    ? 'Interview Session Ready to Start'
+                    : activeSession.status === 'paused'
+                    ? 'Paused Interview Session'
+                    : 'Active Interview in Progress'}
                 </span>
-                <span className="h-2 w-2 rounded-full bg-cyan-400 animate-ping" />
+                <span
+                  className={`h-2 w-2 rounded-full ${
+                    activeSession.status === 'draft'
+                      ? 'bg-amber-500'
+                      : activeSession.status === 'paused'
+                      ? 'bg-amber-500'
+                      : 'bg-emerald-500 animate-ping'
+                  }`}
+                />
               </div>
               <h4 className="text-base font-bold text-foreground">
                 {activeSession.candidateName} — {activeSession.jobPosition}
               </h4>
             </div>
           </div>
-          <Button
-            variant="default"
-            onClick={() => onNavigate('workspace')}
-            className="text-xs sm:text-sm font-semibold shrink-0"
-          >
-            <span>Resume Interview Workspace</span>
-            <ArrowRight className="h-4 w-4 ml-1.5" />
-          </Button>
+          <div className="flex items-center gap-2.5">
+            {activeSession.status !== 'draft' && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setIsEndConfirmOpen(true)}
+                className="h-9 px-4 text-xs font-bold border-rose-300 text-rose-700 bg-white hover:bg-rose-50 hover:text-rose-900 inline-flex items-center justify-center gap-1.5 rounded-lg shadow-xs hover:shadow-sm whitespace-nowrap shrink-0"
+              >
+                <Square className="h-3.5 w-3.5 mr-1.5 text-rose-600 fill-rose-600" />
+                <span>End Interview</span>
+              </Button>
+            )}
+            <Button
+              variant="default"
+              size="sm"
+              onClick={() => onNavigate('workspace')}
+              className="h-9 px-4 text-xs font-bold inline-flex items-center justify-center gap-1.5 rounded-lg shrink-0 shadow-md shadow-amber-500/20 hover:shadow-amber-500/35 whitespace-nowrap"
+            >
+              <span>{activeSession.status === 'draft' ? 'Open Workspace & Start' : 'Resume Interview Workspace'}</span>
+              <ArrowRight className="h-4 w-4 ml-1.5" />
+            </Button>
+          </div>
         </div>
       )}
+
+      {/* End Ongoing Session Modal on Dashboard */}
+      <Modal
+        isOpen={isEndConfirmOpen}
+        onClose={() => setIsEndConfirmOpen(false)}
+        title={
+          <div className="flex items-center gap-2 text-rose-700">
+            <Square className="h-4 w-4 fill-rose-600 text-rose-600" />
+            <span>End Active Interview Session</span>
+          </div>
+        }
+      >
+        <div className="space-y-4">
+          <p className="text-xs sm:text-sm text-stone-800 leading-relaxed">
+            Are you sure you want to stop the interview session with{' '}
+            <strong className="text-stone-950 font-bold">{activeSession?.candidateName}</strong> ({activeSession?.jobPosition})?
+          </p>
+
+          <div className="p-3.5 rounded-xl border border-stone-200 bg-stone-50 space-y-2 text-xs">
+            <span className="font-bold text-stone-900 block">Available options:</span>
+            <ul className="space-y-1.5 text-stone-700 list-disc list-inside">
+              <li>
+                <strong>Open in Workspace:</strong> Evaluate answers and conclude with a partial report.
+              </li>
+              <li>
+                <strong>Abort Session:</strong> Permanently ends this interview and marks it as ended early in history.
+              </li>
+            </ul>
+          </div>
+
+          <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-stone-200">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setIsEndConfirmOpen(false)}
+              className="text-xs text-muted-foreground hover:text-foreground"
+            >
+              Keep Session Active
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={async () => {
+                await abandonInterview();
+                clearActiveSession();
+                setIsEndConfirmOpen(false);
+                const storedSessions = await db.sessions.orderBy('createdAt').reverse().toArray();
+                setSessions(storedSessions);
+              }}
+              className="text-xs border-rose-300 text-rose-700 bg-white hover:bg-rose-50 hover:text-rose-900 font-semibold"
+            >
+              <Trash2 className="h-3.5 w-3.5 mr-1 text-rose-600" />
+              <span>Abort Session</span>
+            </Button>
+            <Button
+              variant="default"
+              size="sm"
+              onClick={() => {
+                setIsEndConfirmOpen(false);
+                onNavigate('workspace');
+              }}
+              className="text-xs font-semibold"
+            >
+              <span>Open in Workspace</span>
+            </Button>
+          </div>
+        </div>
+      </Modal>
 
       {/* Two Column Section: Recent Sessions & Quick Overview */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         {/* Recent Interviews Table (8 cols) */}
         <div className="lg:col-span-8 space-y-4">
-          <Card className="border-border/80">
+          <Card className="border-amber-200/70 bg-white shadow-sm hover:shadow-md transition-shadow duration-200">
             <CardHeader className="flex flex-row items-center justify-between pb-3">
               <div>
                 <CardTitle className="text-base font-semibold">
                   Recent Interview Sessions
                 </CardTitle>
                 <CardDescription className="text-xs">
-                  Locally stored candidate interviews recorded in IndexedDB
+                  Candidate interview records and evaluation scores
                 </CardDescription>
               </div>
               {sessions.length > 5 && (
@@ -199,7 +297,7 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
                   variant="ghost"
                   size="sm"
                   onClick={() => onNavigate('history')}
-                  className="text-xs text-cyan-400 hover:text-cyan-300"
+                  className="text-xs text-amber-700 hover:text-amber-800"
                 >
                   View All ({sessions.length})
                 </Button>
@@ -289,7 +387,9 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
                                   s.status === 'completed'
                                     ? 'bg-emerald-500/10 text-emerald-400'
                                     : s.status === 'in_progress'
-                                    ? 'bg-cyan-500/10 text-cyan-400'
+                                    ? 'bg-primary/10 text-primary'
+                                    : s.status === 'draft'
+                                    ? 'bg-amber-500/10 text-amber-500'
                                     : 'bg-secondary text-muted-foreground'
                                 }`}
                               >
@@ -297,6 +397,8 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
                                   ? 'Completed'
                                   : s.status === 'in_progress'
                                   ? 'Live'
+                                  : s.status === 'draft'
+                                  ? 'Ready'
                                   : s.status}
                               </span>
                             </td>
@@ -323,7 +425,7 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
 
         {/* Right Info Box (4 cols): Quick Start Guide & Hiring Stats */}
         <div className="lg:col-span-4 space-y-4">
-          <Card className="border-border/80">
+          <Card className="border-amber-200/70 bg-white shadow-sm hover:shadow-md transition-shadow duration-200">
             <CardHeader className="pb-3">
               <CardTitle className="text-base font-semibold">
                 Quick Interview Presets
@@ -335,13 +437,13 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
             <CardContent className="space-y-3">
               <div
                 onClick={() => onNavigate('configure')}
-                className="p-3 rounded-xl border border-border/70 hover:border-cyan-500/40 bg-secondary/30 hover:bg-secondary/60 cursor-pointer transition-all space-y-1 group"
+                className="p-3.5 rounded-xl border border-amber-200/70 hover:border-amber-400 bg-amber-50/30 hover:bg-amber-50/70 cursor-pointer transition-all space-y-1 group"
               >
                 <div className="flex items-center justify-between">
-                  <h5 className="text-xs font-semibold text-foreground group-hover:text-cyan-300">
+                  <h5 className="text-xs font-bold text-foreground group-hover:text-amber-800">
                     Senior Java Backend Engineer
                   </h5>
-                  <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-cyan-500/10 text-cyan-400">
+                  <span className="text-[10px] font-mono font-semibold px-2 py-0.5 rounded bg-amber-500/15 text-amber-900 border border-amber-300/40">
                     60 min
                   </span>
                 </div>
@@ -352,13 +454,13 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
 
               <div
                 onClick={() => onNavigate('configure')}
-                className="p-3 rounded-xl border border-border/70 hover:border-violet-500/40 bg-secondary/30 hover:bg-secondary/60 cursor-pointer transition-all space-y-1 group"
+                className="p-3.5 rounded-xl border border-amber-200/70 hover:border-amber-400 bg-amber-50/30 hover:bg-amber-50/70 cursor-pointer transition-all space-y-1 group"
               >
                 <div className="flex items-center justify-between">
-                  <h5 className="text-xs font-semibold text-foreground group-hover:text-violet-300">
+                  <h5 className="text-xs font-bold text-foreground group-hover:text-amber-800">
                     Backend / Distributed Architect
                   </h5>
-                  <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-violet-500/10 text-violet-400">
+                  <span className="text-[10px] font-mono font-semibold px-2 py-0.5 rounded bg-amber-500/15 text-amber-900 border border-amber-300/40">
                     90 min
                   </span>
                 </div>
@@ -369,13 +471,13 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
 
               <div
                 onClick={() => onNavigate('configure')}
-                className="p-3 rounded-xl border border-border/70 hover:border-blue-500/40 bg-secondary/30 hover:bg-secondary/60 cursor-pointer transition-all space-y-1 group"
+                className="p-3.5 rounded-xl border border-amber-200/70 hover:border-amber-400 bg-amber-50/30 hover:bg-amber-50/70 cursor-pointer transition-all space-y-1 group"
               >
                 <div className="flex items-center justify-between">
-                  <h5 className="text-xs font-semibold text-foreground group-hover:text-blue-300">
+                  <h5 className="text-xs font-bold text-foreground group-hover:text-amber-800">
                     Core Java & DSA Assessment
                   </h5>
-                  <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-blue-500/10 text-blue-400">
+                  <span className="text-[10px] font-mono font-semibold px-2 py-0.5 rounded bg-amber-500/15 text-amber-900 border border-amber-300/40">
                     45 min
                   </span>
                 </div>
@@ -383,50 +485,6 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
                   Focus: Collections internals, memory model, Streams, multi-threading and algorithmic coding.
                 </p>
               </div>
-            </CardContent>
-          </Card>
-
-          {/* Hiring Recommendations Distribution */}
-          <Card className="border-border/80">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-base font-semibold">
-                Hiring Decisions Distribution
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-2">
-              {['Strong Hire', 'Hire', 'Lean Hire', 'Lean No Hire', 'No Hire'].map((rec) => {
-                const count = reports.filter(
-                  (r) => (r.interviewerOverrideRecommendation || r.hiringRecommendation) === rec
-                ).length;
-                const pct = reports.length > 0 ? Math.round((count / reports.length) * 100) : 0;
-
-                return (
-                  <div key={rec} className="space-y-1">
-                    <div className="flex justify-between text-xs font-medium">
-                      <span className="text-foreground">{rec}</span>
-                      <span className="text-muted-foreground">
-                        {count} ({pct}%)
-                      </span>
-                    </div>
-                    <div className="h-1.5 w-full bg-secondary rounded-full overflow-hidden">
-                      <div
-                        className={`h-full rounded-full ${
-                          rec === 'Strong Hire'
-                            ? 'bg-emerald-500'
-                            : rec === 'Hire'
-                            ? 'bg-cyan-500'
-                            : rec === 'Lean Hire'
-                            ? 'bg-blue-500'
-                            : rec === 'Lean No Hire'
-                            ? 'bg-amber-500'
-                            : 'bg-rose-500'
-                        }`}
-                        style={{ width: `${pct}%` }}
-                      />
-                    </div>
-                  </div>
-                );
-              })}
             </CardContent>
           </Card>
         </div>

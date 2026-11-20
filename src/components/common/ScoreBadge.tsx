@@ -23,9 +23,9 @@ export function ScoreBadge({
         border: 'border-emerald-500/30',
       },
       Hire: {
-        bg: 'bg-cyan-500/15',
-        text: 'text-cyan-300',
-        border: 'border-cyan-500/30',
+        bg: 'bg-indigo-500/15',
+        text: 'text-indigo-300',
+        border: 'border-indigo-500/30',
       },
       'Lean Hire': {
         bg: 'bg-blue-500/15',
@@ -78,7 +78,7 @@ export function ScoreBadge({
     if (score >= 85) {
       colorClass = 'text-emerald-400 bg-emerald-500/10 border-emerald-500/30';
     } else if (score >= 70) {
-      colorClass = 'text-cyan-300 bg-cyan-500/10 border-cyan-500/30';
+      colorClass = 'text-indigo-300 bg-indigo-500/10 border-indigo-500/30';
     } else if (score >= 50) {
       colorClass = 'text-amber-400 bg-amber-500/10 border-amber-500/30';
     }

@@ -34,8 +34,8 @@ export class ErrorBoundary extends Component<Props, State> {
   public render() {
     if (this.state.hasError) {
       return (
-        <div className="min-h-screen bg-slate-950 text-slate-100 flex items-center justify-center p-6">
-          <div className="max-w-md w-full p-6 rounded-2xl border border-rose-500/30 bg-slate-900/90 text-center space-y-4 shadow-2xl">
+        <div className="min-h-screen bg-black text-white flex items-center justify-center p-6">
+          <div className="max-w-md w-full p-6 rounded-2xl border border-zinc-800 bg-zinc-950 text-center space-y-4 shadow-2xl">
             <div className="h-12 w-12 rounded-xl bg-rose-500/20 text-rose-400 flex items-center justify-center mx-auto">
               <AlertTriangle className="h-6 w-6" />
             </div>
@@ -63,3 +63,4 @@ export class ErrorBoundary extends Component<Props, State> {
     return this.props.children;
   }
 }
+

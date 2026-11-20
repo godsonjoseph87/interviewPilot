@@ -3,66 +3,97 @@
 @tailwind utilities;
 
 @layer base {
-  :root {
-    --background: 222 47% 7%;
-    --foreground: 210 40% 98%;
 
-    --card: 222 47% 10%;
-    --card-foreground: 210 40% 98%;
-
-    --popover: 222 47% 10%;
-    --popover-foreground: 210 40% 98%;
-
-    --primary: 199 89% 48%; /* Cyan-blue */
-    --primary-foreground: 222 47% 7%;
-
-    --secondary: 217 33% 17%;
-    --secondary-foreground: 210 40% 98%;
-
-    --muted: 217 33% 15%;
-    --muted-foreground: 215 20% 65%;
-
-    --accent: 250 84% 67%; /* Violet */
-    --accent-foreground: 210 40% 98%;
-
-    --destructive: 0 84% 60%;
-    --destructive-foreground: 210 40% 98%;
-
-    --border: 217 33% 18%;
-    --input: 217 33% 18%;
-    --ring: 199 89% 48%;
-
-    --radius: 0.75rem;
-  }
-
+  :root,
   .light {
-    --background: 210 40% 98%;
-    --foreground: 222 47% 11%;
+    /* White Theme with Golden Gradient Highlights */
+    --background: 40 30% 99%;
+    /* Crisp Warm White #fefdfb */
+    --foreground: 24 10% 12%;
+    /* Rich Charcoal #201e1c */
 
     --card: 0 0% 100%;
-    --card-foreground: 222 47% 11%;
+    /* Pure White #ffffff */
+    --card-foreground: 24 10% 12%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 222 47% 11%;
+    --popover-foreground: 24 10% 12%;
 
-    --primary: 199 89% 42%;
-    --primary-foreground: 0 0% 100%;
+    --primary: 38 92% 50%;
+    /* Golden Amber #f59e0b */
+    --primary-foreground: 24 10% 10%;
+    /* Dark Charcoal Text on Gold */
 
-    --secondary: 210 40% 93%;
-    --secondary-foreground: 222 47% 11%;
+    --secondary: 40 25% 96%;
+    /* Soft Warm Ivory #f7f5f1 */
+    --secondary-foreground: 24 10% 18%;
 
-    --muted: 210 40% 94%;
-    --muted-foreground: 215 16% 47%;
+    --muted: 40 20% 94%;
+    /* Soft Muted Ivory #f3efe7 */
+    --muted-foreground: 24 6% 45%;
+    /* Legible Warm Stone #75716b */
 
-    --accent: 250 84% 60%;
-    --accent-foreground: 0 0% 100%;
+    --accent: 38 92% 50%;
+    /* Radiant Gold */
+    --accent-foreground: 24 10% 10%;
 
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 214 32% 88%;
-    --input: 214 32% 88%;
-    --ring: 199 89% 42%;
+    --border: 38 20% 89%;
+    /* Subtle Warm Golden-Stone Border #ece6dc */
+    --input: 38 20% 89%;
+    --ring: 38 92% 50%;
+    /* Gold Focus Ring */
+
+    --radius: 0.75rem;
+  }
+
+  .dark {
+    /* Pure Pitch Black & White Monochrome */
+    --background: 0 0% 0%;
+    /* Pitch Black #000000 */
+    --foreground: 0 0% 100%;
+    /* Pure White #ffffff */
+
+    --card: 0 0% 7%;
+    /* A little less black #121212 */
+    --card-foreground: 0 0% 100%;
+
+    --popover: 0 0% 7%;
+    /* #121212 */
+    --popover-foreground: 0 0% 100%;
+
+    --primary: 0 0% 100%;
+    /* Pure White */
+    --primary-foreground: 0 0% 0%;
+    /* Pitch Black */
+
+    --secondary: 0 0% 12%;
+    /* Lighter Black #1f1f1f */
+    --secondary-foreground: 0 0% 100%;
+
+    --muted: 0 0% 10%;
+    /* Lighter Black #1a1a1a */
+    --muted-foreground: 0 0% 65%;
+    /* Soft Silver #a6a6a6 */
+
+    --accent: 0 0% 100%;
+    /* White Accent */
+    --accent-foreground: 0 0% 0%;
+
+    --destructive: 0 0% 20%;
+    /* Dark Neutral Surface */
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 0 0% 22%;
+    /* White Border Highlight #383838 */
+    --input: 0 0% 11%;
+    /* Lighter Black for inputs #1c1c1c */
+    --ring: 0 0% 100%;
+    /* White Focus Ring */
+
+    --radius: 0.75rem;
   }
 }
 
@@ -70,10 +101,23 @@
   * {
     @apply border-border;
   }
+
   body {
     @apply bg-background text-foreground font-sans;
     font-feature-settings: "rlig" 1, "calt" 1;
   }
+}
+
+/* Light Mode Universal High-Contrast Text Selection */
+:root:not(.dark) ::selection,
+.light ::selection,
+:root:not(.dark) *::selection,
+.light *::selection {
+  background-color: #fde68a !important;
+  /* Soft radiant golden highlight */
+  color: #1c1917 !important;
+  /* Crisp, readable deep charcoal text */
+  text-shadow: none !important;
 }
 
 /* Custom scrollbars */
@@ -81,29 +125,438 @@
   width: 7px;
   height: 7px;
 }
+
 ::-webkit-scrollbar-track {
   background: transparent;
 }
+
 ::-webkit-scrollbar-thumb {
   background: hsl(var(--border));
   border-radius: 9999px;
 }
+
 ::-webkit-scrollbar-thumb:hover {
   background: hsl(var(--muted-foreground) / 0.5);
 }
 
 /* Glassmorphism helpers */
 .glass-panel {
-  background: rgba(15, 23, 42, 0.75);
+  background: hsl(var(--card) / 0.92);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   border: 1px solid hsl(var(--border));
 }
 
-.light .glass-panel {
-  background: rgba(255, 255, 255, 0.85);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid hsl(var(--border));
+/* Golden Gradient Accents for Light Mode */
+.gold-gradient {
+  background: linear-gradient(135deg, #f59e0b 0%, #fbbf24 45%, #d97706 100%);
 }
 
+.gold-gradient-soft {
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.12) 0%, rgba(251, 191, 36, 0.18) 50%, rgba(217, 119, 6, 0.12) 100%);
+}
+
+.gold-gradient-text {
+  background: linear-gradient(135deg, #b45309 0%, #d97706 40%, #f59e0b 80%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.gold-border-glow {
+  border: 1px solid rgba(245, 158, 11, 0.35);
+  box-shadow: 0 4px 20px -2px rgba(245, 158, 11, 0.12);
+}
+
+/* =========================================================================
+   PURE MONOCHROME BLACK & WHITE THEME FOR DARK MODE
+   No other colour on dark mode.
+   Variants: Pitch black, a little less black for cards, white borders, and white text/highlights.
+   ========================================================================= */
+
+.dark {
+  color-scheme: dark;
+}
+
+/* 1. Main Backgrounds: Pitch Black */
+.dark,
+.dark body,
+.dark #root,
+.dark .bg-background {
+  background-color: #000000 !important;
+  color: #ffffff !important;
+}
+
+/* 2. Cards, Sidebars, Headers, Modals: "a little less black" with white border highlight */
+.dark .bg-white,
+.dark .bg-white\/95,
+.dark .bg-white\/90,
+.dark .bg-white\/80,
+.dark .bg-white\/60,
+.dark .bg-white\/40,
+.dark .bg-card,
+.dark header,
+.dark aside,
+.dark [role="dialog"],
+.dark .card {
+  background-color: #121212 !important;
+  color: #ffffff !important;
+}
+
+/* 3. Lighter Black for Sub-cards, inner sections, pills, badges, secondary blocks */
+.dark .bg-stone-50,
+.dark .bg-stone-50\/60,
+.dark .bg-stone-50\/80,
+.dark .bg-stone-100,
+.dark .bg-stone-100\/70,
+.dark .bg-stone-100\/80,
+.dark .bg-amber-50,
+.dark .bg-amber-50\/30,
+.dark .bg-amber-50\/40,
+.dark .bg-amber-50\/50,
+.dark .bg-amber-50\/60,
+.dark .bg-amber-50\/70,
+.dark .bg-amber-50\/80,
+.dark .bg-amber-100,
+.dark .bg-amber-100\/70,
+.dark .bg-amber-100\/80,
+.dark .bg-amber-100\/90,
+.dark .bg-amber-200,
+.dark .bg-amber-500\/10,
+.dark .bg-amber-500\/15,
+.dark .bg-amber-500\/20,
+.dark .bg-yellow-500\/10,
+.dark .bg-yellow-500\/20,
+.dark .bg-emerald-50,
+.dark .bg-emerald-500\/10,
+.dark .bg-emerald-500\/15,
+.dark .bg-emerald-500\/20,
+.dark .bg-rose-50,
+.dark .bg-rose-50\/60,
+.dark .bg-rose-100,
+.dark .bg-rose-500\/10,
+.dark .bg-secondary,
+.dark .bg-secondary\/30,
+.dark .bg-secondary\/80,
+.dark .bg-muted {
+  background-color: #1c1c1c !important;
+  color: #ffffff !important;
+}
+
+/* 4. Hover states in dark mode */
+.dark .hover\:bg-amber-50:hover,
+.dark .hover\:bg-amber-50\/40:hover,
+.dark .hover\:bg-amber-50\/60:hover,
+.dark .hover\:bg-amber-50\/70:hover,
+.dark .hover\:bg-amber-100:hover,
+.dark .hover\:bg-amber-100\/80:hover,
+.dark .hover\:bg-white:hover,
+.dark .hover\:bg-white\/60:hover,
+.dark .hover\:bg-white\/80:hover,
+.dark .hover\:bg-stone-100:hover,
+.dark .hover\:bg-muted:hover,
+.dark .hover\:bg-secondary:hover {
+  background-color: #262626 !important;
+  color: #ffffff !important;
+}
+
+/* 5. White Border Highlights (No amber, no green, no red) */
+.dark .border-amber-200,
+.dark .border-amber-200\/60,
+.dark .border-amber-200\/70,
+.dark .border-amber-200\/80,
+.dark .border-amber-200\/90,
+.dark .border-amber-300,
+.dark .border-amber-300\/40,
+.dark .border-amber-300\/50,
+.dark .border-amber-300\/60,
+.dark .border-amber-300\/80,
+.dark .border-amber-300\/90,
+.dark .border-amber-400,
+.dark .border-amber-400\/40,
+.dark .border-amber-400\/50,
+.dark .border-amber-500,
+.dark .border-amber-500\/40,
+.dark .border-amber-500\/50,
+.dark .border-yellow-500\/30,
+.dark .border-emerald-200,
+.dark .border-emerald-300,
+.dark .border-emerald-500,
+.dark .border-emerald-500\/20,
+.dark .border-emerald-500\/30,
+.dark .border-emerald-500\/40,
+.dark .border-rose-200,
+.dark .border-rose-300,
+.dark .border-rose-300\/90,
+.dark .border-rose-500\/30,
+.dark .border-stone-100,
+.dark .border-stone-200,
+.dark .border-stone-200\/60,
+.dark .border-stone-200\/80,
+.dark .border-stone-200\/90,
+.dark .border-stone-300,
+.dark .border-stone-700,
+.dark .border-stone-800,
+.dark .border-stone-900,
+.dark .border-border,
+.dark .border-border\/50,
+.dark .border-border\/60,
+.dark .border-border\/70,
+.dark .border-border\/80,
+.dark .border-input {
+  border-color: rgba(255, 255, 255, 0.22) !important;
+}
+
+.dark .hover\:border-amber-300:hover,
+.dark .hover\:border-amber-400:hover,
+.dark .hover\:border-amber-500:hover,
+.dark .hover\:border-emerald-500\/40:hover,
+.dark .hover\:border-stone-400:hover {
+  border-color: rgba(255, 255, 255, 0.5) !important;
+}
+
+/* 6. Text: Pure White for Headings & Main Text, Silver for Muted (No amber, no yellow, no red, no green) */
+.dark .text-stone-950,
+.dark .text-stone-900,
+.dark .text-stone-800,
+.dark .text-stone-700,
+.dark .text-amber-950,
+.dark .text-amber-900,
+.dark .text-amber-800,
+.dark .text-emerald-950,
+.dark .text-emerald-900,
+.dark .text-emerald-800,
+.dark .text-emerald-700,
+.dark .text-rose-950,
+.dark .text-rose-900,
+.dark .text-rose-800,
+.dark .text-foreground {
+  color: #ffffff !important;
+}
+
+.dark .text-stone-600,
+.dark .text-stone-500,
+.dark .text-stone-400,
+.dark .text-amber-700,
+.dark .text-amber-600,
+.dark .text-rose-600,
+.dark .text-rose-700,
+.dark .text-rose-400,
+.dark .text-rose-300,
+.dark .text-emerald-600,
+.dark .text-emerald-400,
+.dark .text-muted-foreground {
+  color: #a1a1aa !important;
+}
+
+/* 7. Icons: Pure White */
+.dark svg {
+  color: #ffffff !important;
+}
+
+.dark svg.fill-rose-600,
+.dark svg.fill-current {
+  fill: #ffffff !important;
+}
+
+/* 8. Active/Primary Highlights: Crisp White Background with Pitch Black Text */
+.dark button.gold-gradient,
+.dark button.bg-gradient-to-r.from-amber-500,
+.dark button.bg-gradient-to-r.from-amber-600,
+.dark button.bg-amber-500,
+.dark button.bg-amber-600,
+.dark button.bg-emerald-600,
+.dark button.bg-rose-600,
+.dark a.gold-gradient {
+  background: #ffffff !important;
+  color: #000000 !important;
+  border-color: #ffffff !important;
+  box-shadow: 0 2px 10px rgba(255, 255, 255, 0.18), 0 1px 3px rgba(0, 0, 0, 0.4) !important;
+}
+
+.dark button.gold-gradient:hover,
+.dark button.bg-gradient-to-r.from-amber-500:hover,
+.dark button.bg-gradient-to-r.from-amber-600:hover,
+.dark button.bg-amber-500:hover,
+.dark button.bg-amber-600:hover,
+.dark button.bg-emerald-600:hover,
+.dark button.bg-rose-600:hover {
+  box-shadow: 0 4px 16px rgba(255, 255, 255, 0.3), 0 2px 5px rgba(0, 0, 0, 0.5) !important;
+}
+
+/* Subtle monochrome elevation shadows for cards, panels, and buttons in dark mode */
+.dark .shadow-2xs,
+.dark .shadow-xs {
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(255, 255, 255, 0.06) !important;
+}
+
+.dark .shadow-sm,
+.dark .shadow,
+.dark .shadow-card {
+  box-shadow: 0 4px 14px -2px rgba(0, 0, 0, 0.85), 0 0 0 1px rgba(255, 255, 255, 0.08) !important;
+}
+
+.dark .shadow-md,
+.dark .shadow-card-hover {
+  box-shadow: 0 8px 22px -3px rgba(0, 0, 0, 0.95), 0 0 0 1px rgba(255, 255, 255, 0.12) !important;
+}
+
+.dark .shadow-lg,
+.dark .shadow-xl {
+  box-shadow: 0 12px 30px -4px rgba(0, 0, 0, 0.95), 0 0 0 1px rgba(255, 255, 255, 0.14) !important;
+}
+
+.dark button:not(.shadow-none):not(:disabled) {
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.7);
+}
+
+.dark button:not(.shadow-none):not(:disabled):hover {
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.85);
+}
+
+.dark button.gold-gradient *,
+.dark button.bg-gradient-to-r.from-amber-500 *,
+.dark button.bg-gradient-to-r.from-amber-600 *,
+.dark button.bg-amber-500 *,
+.dark button.bg-amber-600 *,
+.dark button.bg-emerald-600 *,
+.dark button.bg-rose-600 *,
+.dark a.gold-gradient * {
+  color: #000000 !important;
+  fill: #000000 !important;
+}
+
+/* Ensure app logo and header navigation icons are always pure white in dark mode */
+.dark .dark\:text-white,
+.dark .group svg,
+.dark header svg {
+  color: #ffffff !important;
+  stroke: #ffffff !important;
+}
+
+/* AI Connection Status Icon in Header / Navbar (Preserve Green when connected, Dull when disconnected) */
+.ai-status-connected,
+.ai-status-connected svg,
+header .ai-status-connected svg,
+.dark header .ai-status-connected svg,
+.dark .ai-status-connected svg {
+  color: #22c55e !important;
+  stroke: #22c55e !important;
+}
+
+.ai-status-disconnected,
+.ai-status-disconnected svg,
+header .ai-status-disconnected svg,
+.dark header .ai-status-disconnected svg,
+.dark .ai-status-disconnected svg {
+  color: #71717a !important;
+  stroke: #71717a !important;
+  opacity: 0.45 !important;
+}
+
+.dark .dark\:bg-black {
+  background-color: #000000 !important;
+}
+
+.dark .gold-gradient-soft {
+  background: rgba(255, 255, 255, 0.08) !important;
+}
+
+.dark .gold-gradient-text {
+  background: none !important;
+  -webkit-text-fill-color: #ffffff !important;
+  color: #ffffff !important;
+}
+
+.dark .gold-border-glow {
+  border-color: rgba(255, 255, 255, 0.35) !important;
+  box-shadow: 0 0 16px rgba(255, 255, 255, 0.08) !important;
+}
+
+/* 9. Inputs, Textareas, Selects: Lighter black, white border, pure white text */
+.dark input,
+.dark textarea,
+.dark select {
+  background-color: #161616 !important;
+  color: #ffffff !important;
+  border-color: rgba(255, 255, 255, 0.22) !important;
+}
+
+.dark input::placeholder,
+.dark textarea::placeholder {
+  color: #71717a !important;
+}
+
+.dark input:focus,
+.dark textarea:focus,
+.dark select:focus {
+  border-color: #ffffff !important;
+  box-shadow: 0 0 0 1px #ffffff !important;
+}
+
+/* 10. Selected question / active tab rings */
+.dark .ring-amber-400\/40,
+.dark .ring-amber-500\/40,
+.dark .ring-amber-500\/50,
+.dark .ring-2 {
+  --tw-ring-color: rgba(255, 255, 255, 0.45) !important;
+}
+
+/* 11. Code Blocks & Terminal Style */
+.dark pre,
+.dark code {
+  background-color: #1a1a1a !important;
+  color: #ffffff !important;
+  border-color: rgba(255, 255, 255, 0.2) !important;
+}
+
+/* 12. Badges */
+.dark .rounded-full.border {
+  background-color: #1a1a1a !important;
+  color: #ffffff !important;
+  border-color: rgba(255, 255, 255, 0.25) !important;
+}
+
+/* 13. Progress Bar in Dark Mode: Sleek White on Dark */
+.dark .ProgressBar-track,
+.dark .bg-secondary\/80 {
+  background-color: #222222 !important;
+}
+
+/* 14. High-Contrast Text Selection in Dark Mode: Pure White with Black Text */
+.dark ::selection,
+.dark *::selection,
+.dark ::-moz-selection,
+.dark *::-moz-selection {
+  background-color: #ffffff !important;
+  color: #000000 !important;
+  text-shadow: none !important;
+}
+
+/* 15. Scrollbars in Dark Mode */
+.dark ::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.25) !important;
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.45) !important;
+}
+
+/* 16. Charts in Dark Mode: Monochrome White and Neutral Grays */
+.dark .recharts-bar-rectangle path {
+  fill: #ffffff !important;
+}
+
+.dark .recharts-radar-polygon {
+  stroke: #ffffff !important;
+  fill: rgba(255, 255, 255, 0.25) !important;
+}
+
+.dark .recharts-polar-grid-angle line,
+.dark .recharts-polar-grid-concentric path {
+  stroke: rgba(255, 255, 255, 0.15) !important;
+}
+
+.dark .recharts-text,
+.dark .recharts-cartesian-axis-tick text {
+  fill: #a1a1aa !important;
+}

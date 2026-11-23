@@ -10,14 +10,20 @@ const candidateNodes = [
 ];
 
 let selectedNode = process.execPath;
-for (const cand of candidateNodes) {
-  if (fs.existsSync(cand)) {
-    try {
-      fs.accessSync(cand, fs.constants.X_OK);
-      selectedNode = cand;
-      break;
-    } catch (e) {
-      // ignore
+const currentMajor = parseInt(process.versions.node.split('.')[0], 10);
+if (currentMajor < 18 && process.platform !== 'win32') {
+  for (const cand of candidateNodes) {
+    if (fs.existsSync(cand)) {
+      try {
+        const stat = fs.statSync(cand);
+        if (stat.size > 1000000) {
+          fs.accessSync(cand, fs.constants.X_OK);
+          selectedNode = cand;
+          break;
+        }
+      } catch (e) {
+        // ignore
+      }
     }
   }
 }

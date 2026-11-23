@@ -34,27 +34,37 @@ export class ErrorBoundary extends Component<Props, State> {
   public render() {
     if (this.state.hasError) {
       return (
-        <div className="min-h-screen bg-black text-white flex items-center justify-center p-6">
-          <div className="max-w-md w-full p-6 rounded-2xl border border-zinc-800 bg-zinc-950 text-center space-y-4 shadow-2xl">
-            <div className="h-12 w-12 rounded-xl bg-rose-500/20 text-rose-400 flex items-center justify-center mx-auto">
+        <div className="min-h-screen bg-background text-foreground flex items-center justify-center p-6">
+          <div className="max-w-md w-full p-6 rounded-xl border border-border bg-card text-center space-y-4 shadow-overlay">
+            <div className="h-12 w-12 rounded-lg bg-danger-subtle border border-danger-border text-danger flex items-center justify-center mx-auto">
               <AlertTriangle className="h-6 w-6" />
             </div>
-            <div>
-              <h2 className="text-lg font-bold text-white">
+
+            <div className="space-y-1">
+              <h2 className="text-h2 font-semibold text-foreground tracking-tight">
                 {this.props.fallbackTitle || 'Something went wrong'}
               </h2>
-              <p className="text-xs text-slate-400 mt-1 leading-relaxed">
-                {this.state.error?.message || 'An unexpected rendering error occurred.'}
+              <p className="text-caption text-muted-foreground leading-relaxed">
+                An unexpected interface error occurred. You can reload the page to restore state from your local database.
               </p>
             </div>
-            <Button
-              onClick={this.handleReset}
-              size="sm"
-              className="flex items-center gap-2 mx-auto text-xs"
-            >
-              <RotateCcw className="h-3.5 w-3.5" />
-              <span>Reload Application</span>
-            </Button>
+
+            {this.state.error && (
+              <div className="p-3 rounded-md bg-surface-raised border border-border text-left font-mono text-caption text-danger-foreground max-h-36 overflow-y-auto">
+                {this.state.error.message || String(this.state.error)}
+              </div>
+            )}
+
+            <div className="pt-2 flex justify-center">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={this.handleReset}
+                leftIcon={<RotateCcw className="h-3.5 w-3.5" />}
+              >
+                Reload Application
+              </Button>
+            </div>
           </div>
         </div>
       );
@@ -63,4 +73,3 @@ export class ErrorBoundary extends Component<Props, State> {
     return this.props.children;
   }
 }
-

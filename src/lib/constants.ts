@@ -62,10 +62,10 @@ export const DSA_LANGUAGES = [
 ] as const;
 
 export const HIRING_RECOMMENDATIONS = [
-  { value: 'Strong Hire', color: 'emerald', bg: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' },
-  { value: 'Hire', color: 'cyan', bg: 'bg-cyan-500/10 text-cyan-400 border-cyan-500/20' },
-  { value: 'Lean Hire', color: 'blue', bg: 'bg-blue-500/10 text-blue-400 border-blue-500/20' },
-  { value: 'Lean No Hire', color: 'amber', bg: 'bg-amber-500/10 text-amber-400 border-amber-500/20' },
-  { value: 'No Hire', color: 'rose', bg: 'bg-rose-500/10 text-rose-400 border-rose-500/20' },
+  { value: 'Strong Hire', color: 'success', bg: 'bg-success-subtle text-success border-success-border' },
+  { value: 'Hire', color: 'primary', bg: 'bg-primary-subtle text-primary border-primary/20' },
+  { value: 'Lean Hire', color: 'info', bg: 'bg-info-subtle text-info border-info-border' },
+  { value: 'Lean No Hire', color: 'warning', bg: 'bg-warning-subtle text-warning border-warning-border' },
+  { value: 'No Hire', color: 'danger', bg: 'bg-danger-subtle text-danger border-danger-border' },
 ] as const;
 

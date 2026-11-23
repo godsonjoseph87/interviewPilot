@@ -8,11 +8,9 @@ import {
   GitBranch,
   Radio,
   AlertCircle,
-  HelpCircle,
   History,
   Trash2,
   CheckCircle2,
-  ArrowRight,
   ShieldAlert,
   Zap,
 } from 'lucide-react';
@@ -20,6 +18,7 @@ import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import { Textarea } from '@/components/ui/Textarea';
 import { Modal } from '@/components/ui/Modal';
+import { Kbd } from '@/components/ui/Kbd';
 import { useInterviewSessionStore } from '@/store/useInterviewSessionStore';
 
 export function LiveContextPanel() {
@@ -79,31 +78,31 @@ export function LiveContextPanel() {
   return (
     <div className="space-y-6">
       {/* Top Header Card */}
-      <div className="p-5 rounded-2xl border border-amber-200/70 bg-white shadow-sm hover:shadow-md transition-shadow duration-200 space-y-4">
+      <div className="p-5 rounded-lg border border-border bg-card card-surface space-y-4">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-2.5">
-            <div className="h-9 w-9 rounded-xl bg-amber-500/15 border border-amber-300 text-amber-800 flex items-center justify-center font-bold">
+            <div className="h-9 w-9 rounded-lg bg-accent-2-subtle border border-accent-2-border text-accent-2 flex items-center justify-center font-semibold shrink-0">
               <Sparkles className="h-4 w-4" />
             </div>
             <div>
-              <h3 className="text-base font-bold text-foreground flex items-center gap-2">
+              <h3 className="text-small font-semibold text-foreground flex items-center gap-2">
                 <span>Live Candidate Context</span>
-                <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-amber-500/10 border border-amber-300/60 text-amber-900 font-semibold">
-                  Adaptive Intelligence
-                </span>
+                <Badge variant="ai" className="text-caption font-mono">
+                  Adaptive AI
+                </Badge>
               </h3>
-              <p className="text-xs text-muted-foreground">
+              <p className="text-caption text-muted-foreground">
                 Capture the candidate's real-world systems, tech stack, and architectures to adapt upcoming questions.
               </p>
             </div>
           </div>
 
           <div className="flex items-center gap-2">
-            <Badge variant="outline" className="text-xs font-mono border-amber-200/70 bg-white">
+            <Badge variant="secondary" className="font-mono">
               {contextHistory.length} context {contextHistory.length === 1 ? 'note' : 'notes'}
             </Badge>
             {totalAltsCount > 0 && (
-              <Badge variant="success" className="text-xs font-mono flex items-center gap-1">
+              <Badge variant="success" className="font-mono flex items-center gap-1">
                 <CheckCircle2 className="h-3 w-3" />
                 <span>{totalAltsCount} alternatives ready</span>
               </Badge>
@@ -112,11 +111,11 @@ export function LiveContextPanel() {
         </div>
 
         {/* Input Area */}
-        <div className="space-y-2.5 pt-1">
-          <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center justify-between">
+        <div className="space-y-2 pt-1">
+          <label className="text-caption font-semibold uppercase tracking-wider text-muted-foreground flex items-center justify-between">
             <span>Add Candidate Explanation / Project Disclosures:</span>
-            <span className="text-[11px] text-muted-foreground font-normal">
-              Press <kbd className="px-1.5 py-0.5 rounded bg-stone-100 border border-border text-[10px] font-mono">Ctrl+Enter</kbd> to save
+            <span className="text-caption text-muted-foreground font-normal">
+              Press <Kbd>Ctrl+Enter</Kbd> to save
             </span>
           </label>
 
@@ -125,21 +124,20 @@ export function LiveContextPanel() {
             onChange={(e) => setInputText(e.target.value)}
             onKeyDown={handleKeyDown}
             placeholder="e.g. Worked on an online shopping application with Spring Boot microservices, Kafka for order messaging, MySQL for inventory, and Hibernate for persistence. Handled flash-sale concurrency..."
-            className="min-h-[90px] text-xs sm:text-sm font-sans resize-y bg-stone-50/50 border-amber-200/60 focus:bg-white"
+            className="min-h-[90px]"
           />
 
           <div className="flex flex-wrap items-center justify-between gap-2.5">
             <div className="flex items-center gap-2">
               <Button
                 type="button"
-                variant="default"
+                variant="primary"
                 size="sm"
                 onClick={() => handleAddContext()}
                 disabled={!inputText.trim()}
-                className="h-8 text-xs font-semibold flex items-center gap-1.5 shadow-sm shadow-amber-500/20"
+                leftIcon={<PlusCircle className="h-3.5 w-3.5" />}
               >
-                <PlusCircle className="h-3.5 w-3.5" />
-                <span>Add Context</span>
+                Add Context
               </Button>
 
               <Button
@@ -148,34 +146,30 @@ export function LiveContextPanel() {
                 size="sm"
                 onClick={() => setInputText('')}
                 disabled={!inputText.trim()}
-                className="h-8 text-xs text-muted-foreground hover:text-foreground flex items-center gap-1.5 border-amber-300/80 bg-white hover:bg-amber-50/70"
+                leftIcon={<RotateCcw className="h-3 w-3" />}
               >
-                <RotateCcw className="h-3 w-3" />
-                <span>Clear Input</span>
+                Clear Input
               </Button>
             </div>
 
             {/* Adapt Action Button */}
             <Button
               type="button"
-              variant="default"
+              variant="primary"
               size="sm"
               onClick={() => adaptUpcomingQuestions()}
               disabled={isAdaptingQuestions || contextHistory.length === 0 || upcomingCount === 0}
               isLoading={isAdaptingQuestions}
-              className="h-8 text-xs font-bold shadow-md shadow-amber-500/20 flex items-center gap-1.5"
+              leftIcon={<Sparkles className="h-3.5 w-3.5" />}
             >
-              <Sparkles className="h-3.5 w-3.5" />
-              <span>
-                {isAdaptingQuestions
-                  ? 'Analyzing & Adapting Questions...'
-                  : `Adapt Upcoming Questions (${upcomingCount})`}
-              </span>
+              {isAdaptingQuestions
+                ? 'Analyzing & Adapting Questions...'
+                : `Adapt Upcoming Questions (${upcomingCount})`}
             </Button>
           </div>
 
           {adaptError && (
-            <div className="p-3 rounded-lg border border-rose-500/30 bg-rose-500/10 text-rose-700 text-xs flex items-center gap-2">
+            <div className="p-3 rounded-md border border-danger-border bg-danger-subtle text-danger-foreground text-caption flex items-center gap-2">
               <AlertCircle className="h-4 w-4 shrink-0" />
               <span>{adaptError}</span>
             </div>
@@ -185,25 +179,25 @@ export function LiveContextPanel() {
 
       {/* Current Consolidated Project Summary */}
       {consolidatedContext && (
-        <div className="p-5 rounded-2xl border border-amber-200/70 bg-white space-y-4 shadow-sm hover:shadow-md transition-shadow duration-200 animate-fade-in">
-          <div className="flex items-center justify-between border-b border-border/60 pb-3">
+        <div className="p-5 rounded-lg border border-border bg-card space-y-4 shadow-xs animate-fade-in">
+          <div className="flex items-center justify-between border-b border-border pb-3">
             <div className="flex items-center gap-2">
-              <Layers className="h-4 w-4 text-amber-600" />
-              <h4 className="text-sm font-bold text-foreground">
+              <Layers className="h-4 w-4 text-primary" />
+              <h4 className="text-small font-semibold text-foreground">
                 Consolidated Candidate Architecture & Context
               </h4>
             </div>
-            <Badge variant="outline" className="text-xs font-mono text-amber-900 border-amber-300/60 bg-amber-500/10">
+            <Badge variant="secondary" className="font-mono text-caption">
               Domain: {consolidatedContext.domain}
             </Badge>
           </div>
 
           {/* Extracted Entities Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-caption">
             {/* Technologies Used */}
-            <div className="p-3 rounded-xl bg-secondary/30 border border-border/50 space-y-2">
-              <span className="font-bold text-foreground flex items-center gap-1.5 uppercase tracking-wider text-[11px]">
-                <Cpu className="h-3.5 w-3.5 text-blue-400" />
+            <div className="p-3 rounded-md bg-surface-raised border border-border space-y-2">
+              <span className="font-semibold text-foreground flex items-center gap-1.5 uppercase tracking-wider text-caption">
+                <Cpu className="h-3.5 w-3.5 text-info" />
                 <span>Identified Technologies & Frameworks</span>
               </span>
               <div className="flex flex-wrap gap-1.5">
@@ -211,7 +205,7 @@ export function LiveContextPanel() {
                   consolidatedContext.technologies.map((tech, i) => (
                     <span
                       key={i}
-                      className="px-2 py-0.5 rounded-md bg-blue-500/15 text-blue-300 border border-blue-500/30 font-medium"
+                      className="px-2 py-0.5 rounded bg-info-subtle text-info-foreground border border-info-border font-medium"
                     >
                       {tech}
                     </span>
@@ -223,9 +217,9 @@ export function LiveContextPanel() {
             </div>
 
             {/* Architecture Patterns */}
-            <div className="p-3 rounded-xl bg-secondary/30 border border-border/50 space-y-2">
-              <span className="font-bold text-foreground flex items-center gap-1.5 uppercase tracking-wider text-[11px]">
-                <GitBranch className="h-3.5 w-3.5 text-violet-400" />
+            <div className="p-3 rounded-md bg-surface-raised border border-border space-y-2">
+              <span className="font-semibold text-foreground flex items-center gap-1.5 uppercase tracking-wider text-caption">
+                <GitBranch className="h-3.5 w-3.5 text-primary" />
                 <span>Architectural Patterns</span>
               </span>
               <div className="flex flex-wrap gap-1.5">
@@ -233,7 +227,7 @@ export function LiveContextPanel() {
                   consolidatedContext.architecture.map((arch, i) => (
                     <span
                       key={i}
-                      className="px-2 py-0.5 rounded-md bg-violet-500/15 text-violet-300 border border-violet-500/30 font-medium"
+                      className="px-2 py-0.5 rounded bg-primary-subtle text-primary border border-primary-border font-medium"
                     >
                       {arch}
                     </span>
@@ -245,9 +239,9 @@ export function LiveContextPanel() {
             </div>
 
             {/* Communication & Workflows */}
-            <div className="p-3 rounded-xl bg-secondary/30 border border-border/50 space-y-2">
-              <span className="font-bold text-foreground flex items-center gap-1.5 uppercase tracking-wider text-[11px]">
-                <Radio className="h-3.5 w-3.5 text-emerald-400" />
+            <div className="p-3 rounded-md bg-surface-raised border border-border space-y-2">
+              <span className="font-semibold text-foreground flex items-center gap-1.5 uppercase tracking-wider text-caption">
+                <Radio className="h-3.5 w-3.5 text-success" />
                 <span>Communication & Workflows</span>
               </span>
               <div className="flex flex-wrap gap-1.5">
@@ -255,7 +249,7 @@ export function LiveContextPanel() {
                   consolidatedContext.communication.map((comm, i) => (
                     <span
                       key={i}
-                      className="px-2 py-0.5 rounded-md bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 font-medium"
+                      className="px-2 py-0.5 rounded bg-success-subtle text-success-foreground border border-success-border font-medium"
                     >
                       {comm}
                     </span>
@@ -267,9 +261,9 @@ export function LiveContextPanel() {
             </div>
 
             {/* Business Capabilities */}
-            <div className="p-3 rounded-xl bg-secondary/30 border border-border/50 space-y-2">
-              <span className="font-bold text-foreground flex items-center gap-1.5 uppercase tracking-wider text-[11px]">
-                <Zap className="h-3.5 w-3.5 text-amber-400" />
+            <div className="p-3 rounded-md bg-surface-raised border border-border space-y-2">
+              <span className="font-semibold text-foreground flex items-center gap-1.5 uppercase tracking-wider text-caption">
+                <Zap className="h-3.5 w-3.5 text-warning" />
                 <span>Business Capabilities</span>
               </span>
               <div className="flex flex-wrap gap-1.5">
@@ -277,7 +271,7 @@ export function LiveContextPanel() {
                   consolidatedContext.businessCapabilities.map((cap, i) => (
                     <span
                       key={i}
-                      className="px-2 py-0.5 rounded-md bg-amber-500/15 text-amber-300 border border-amber-500/30 font-medium"
+                      className="px-2 py-0.5 rounded bg-warning-subtle text-warning-foreground border border-warning-border font-medium"
                     >
                       {cap}
                     </span>
@@ -289,29 +283,29 @@ export function LiveContextPanel() {
             </div>
           </div>
 
-          {/* AI-Inferred Scenarios & Clarifications (Strictly distinguished from facts) */}
+          {/* AI-Inferred Scenarios & Clarifications */}
           <div className="space-y-3 pt-2">
             <button
               type="button"
               onClick={() => setShowInferredDetails(!showInferredDetails)}
-              className="text-xs font-bold text-muted-foreground hover:text-foreground flex items-center gap-1.5 uppercase tracking-wider transition-colors"
+              className="text-caption font-semibold text-muted-foreground hover:text-foreground flex items-center gap-1.5 uppercase tracking-wider transition-colors"
             >
               <ShieldAlert className="h-3.5 w-3.5 text-primary" />
               <span>AI-Inferred Scenarios & Clarification Probes</span>
-              <span className="text-[10px] text-muted-foreground font-normal">
+              <span className="text-caption text-subtle-foreground font-normal">
                 ({showInferredDetails ? 'Hide' : 'Show'})
               </span>
             </button>
 
             {showInferredDetails && (
-              <div className="p-4 rounded-xl border border-primary/20 bg-primary/5 space-y-3 text-xs animate-fade-in">
-                <div className="text-[11px] text-primary font-mono flex items-center gap-1.5 bg-primary/10 px-2 py-1 rounded">
-                  <span>ℹ Note: These scenarios are AI-inferred possibilities for technical probing, not verified candidate accomplishments.</span>
+              <div className="p-4 rounded-md border border-border bg-surface-raised space-y-3 text-caption animate-fade-in">
+                <div className="text-caption text-muted-foreground font-mono flex items-center gap-1.5">
+                  <span>ℹ Note: These scenarios are AI-inferred possibilities for technical probing, not verified candidate claims.</span>
                 </div>
 
                 {consolidatedContext.potentialScenarios.length > 0 && (
                   <div>
-                    <span className="font-bold text-foreground block mb-1">
+                    <span className="font-semibold text-foreground block mb-1">
                       Target High-Value Technical Scenarios:
                     </span>
                     <ul className="list-disc list-inside space-y-1 text-muted-foreground">
@@ -324,8 +318,8 @@ export function LiveContextPanel() {
 
                 {consolidatedContext.clarificationProbes.length > 0 && (
                   <div>
-                    <span className="font-bold text-foreground block mb-1">
-                      Recommended Clarification Probes (Verify Candidate Depth):
+                    <span className="font-semibold text-foreground block mb-1">
+                      Recommended Clarification Probes (Verify Depth):
                     </span>
                     <ul className="list-disc list-inside space-y-1 text-foreground/90 font-medium">
                       {consolidatedContext.clarificationProbes.map((pr, i) => (
@@ -341,11 +335,11 @@ export function LiveContextPanel() {
       )}
 
       {/* Chronological Context History Log */}
-      <div className="p-5 rounded-2xl border border-amber-200/70 bg-white space-y-3 shadow-sm hover:shadow-md transition-shadow duration-200">
-        <div className="flex items-center justify-between border-b border-border/60 pb-3">
+      <div className="p-5 rounded-lg border border-border bg-card space-y-3 shadow-xs">
+        <div className="flex items-center justify-between border-b border-border pb-3">
           <div className="flex items-center gap-2">
-            <History className="h-4 w-4 text-amber-600" />
-            <h4 className="text-sm font-bold text-foreground">
+            <History className="h-4 w-4 text-primary" />
+            <h4 className="text-small font-semibold text-foreground">
               Candidate Context History ({contextHistory.length})
             </h4>
           </div>
@@ -354,32 +348,32 @@ export function LiveContextPanel() {
             <Button
               type="button"
               variant="ghost"
-              size="sm"
+              size="xs"
               onClick={handleClearHistory}
-              className="h-7 px-2 text-xs text-rose-400 hover:text-rose-300 hover:bg-rose-500/10 flex items-center gap-1"
+              leftIcon={<Trash2 className="h-3 w-3 text-danger" />}
+              className="text-danger-foreground hover:bg-danger-subtle"
             >
-              <Trash2 className="h-3 w-3" />
-              <span>Clear History</span>
+              Clear History
             </Button>
           )}
         </div>
 
         {contextHistory.length === 0 ? (
-          <div className="py-6 text-center text-xs text-muted-foreground">
+          <div className="py-6 text-center text-caption text-muted-foreground">
             No context notes recorded yet. Add disclosures as the candidate speaks about their past systems.
           </div>
         ) : (
-          <div className="space-y-2.5 max-h-60 overflow-y-auto pr-1">
+          <div className="space-y-2 max-h-60 overflow-y-auto pr-1">
             {contextHistory.map((entry, idx) => (
               <div
                 key={entry.id}
-                className="p-3 rounded-xl bg-secondary/30 border border-border/50 text-xs space-y-1"
+                className="p-3 rounded-md bg-surface-raised border border-border text-caption space-y-1"
               >
-                <div className="flex items-center justify-between text-[11px] text-muted-foreground font-mono">
+                <div className="flex items-center justify-between text-caption text-muted-foreground font-mono">
                   <span className="font-semibold text-primary">Entry #{idx + 1}</span>
-                  <span>{new Date(entry.timestamp).toLocaleTimeString()}</span>
+                  <span className="tabular-nums">{new Date(entry.timestamp).toLocaleTimeString()}</span>
                 </div>
-                <p className="text-foreground text-xs leading-relaxed select-text font-sans">
+                <p className="text-foreground leading-relaxed select-text font-sans">
                   "{entry.text}"
                 </p>
               </div>
@@ -393,39 +387,27 @@ export function LiveContextPanel() {
         isOpen={isClearModalOpen}
         onClose={() => setIsClearModalOpen(false)}
         maxWidth="md"
-        title={
-          <div className="flex items-center gap-2">
-            <Trash2 className="h-4 w-4 text-rose-600" />
-            <span>Clear Context History</span>
-          </div>
-        }
+        title="Clear Context History"
+        description="Are you sure you want to clear all candidate context notes? Previously generated question alternatives will remain available."
       >
-        <div className="space-y-4">
-          <p className="text-xs sm:text-sm text-stone-800 leading-relaxed">
-            Are you sure you want to clear all candidate context notes ({contextHistory.length})? Previously generated question alternatives will remain available.
-          </p>
-
-          <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-border/50">
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={() => setIsClearModalOpen(false)}
-              className="text-xs px-3.5 border-stone-300"
-            >
-              Cancel
-            </Button>
-            <Button
-              type="button"
-              variant="destructive"
-              size="sm"
-              onClick={handleConfirmClearHistory}
-              className="text-xs px-4 font-bold flex items-center gap-1.5"
-            >
-              <Trash2 className="h-3.5 w-3.5" />
-              <span>Clear History</span>
-            </Button>
-          </div>
+        <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-border">
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => setIsClearModalOpen(false)}
+          >
+            Cancel
+          </Button>
+          <Button
+            type="button"
+            variant="danger"
+            size="sm"
+            onClick={handleConfirmClearHistory}
+            leftIcon={<Trash2 className="h-3.5 w-3.5" />}
+          >
+            Clear History
+          </Button>
         </div>
       </Modal>
     </div>

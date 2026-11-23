@@ -1,22 +1,19 @@
 import React, { useState, useEffect } from 'react';
 import {
-  History,
   Search,
-  Filter,
   Trash2,
   FileText,
   Download,
-  Play,
   ArrowUpDown,
-  AlertCircle,
   PlusCircle,
-  CheckCircle,
   FileDown,
 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/Card';
+import { Card, CardContent } from '@/components/ui/Card';
 import { Modal } from '@/components/ui/Modal';
+import { PageHeader } from '@/components/ui/PageHeader';
+import { EmptyState } from '@/components/ui/EmptyState';
 import { ScoreBadge } from '@/components/common/ScoreBadge';
 import { db, deleteFullSession } from '@/services/db';
 import { useInterviewSessionStore } from '@/store/useInterviewSessionStore';
@@ -163,34 +160,25 @@ export function HistoryPage({
   };
 
   return (
-    <div className="w-full px-[10%] pt-[80px] pb-16 space-y-6 animate-fade-in">
+    <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6 animate-fade-in max-w-7xl">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border/80 pb-6">
-        <div>
-          <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-amber-500/10 border border-amber-300/50 text-amber-800 text-xs font-semibold mb-2">
-            <History className="h-3.5 w-3.5 text-amber-600" />
-            <span>Local IndexedDB Database</span>
-          </div>
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground">
-            Interview History & Archives
-          </h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            Revisit past technical interviews, inspect detailed question evaluations, and export PDF reports.
-          </p>
-        </div>
-
-        <Button
-          size="sm"
-          onClick={onCreateNew}
-          className="h-8 px-4 text-xs font-bold inline-flex items-center gap-1.5 self-start sm:self-auto rounded-lg shadow-md shadow-amber-500/20"
-        >
-          <PlusCircle className="h-4 w-4" />
-          <span>New Interview</span>
-        </Button>
-      </div>
+      <PageHeader
+        title="Interview History & Archives"
+        description="Revisit past technical interviews, inspect detailed question evaluations, and export PDF reports."
+        actions={
+          <Button
+            size="sm"
+            variant="primary"
+            onClick={onCreateNew}
+            leftIcon={<PlusCircle className="h-4 w-4" />}
+          >
+            New Interview
+          </Button>
+        }
+      />
 
       {/* Search, Filter & Sort Toolbar */}
-      <Card className="border-amber-200/70 bg-white shadow-sm hover:shadow-md transition-shadow duration-200">
+      <Card>
         <CardContent className="p-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 items-center">
           {/* Search Input */}
           <div className="lg:col-span-1">
@@ -208,7 +196,7 @@ export function HistoryPage({
             <select
               value={filterRecommendation}
               onChange={(e) => setFilterRecommendation(e.target.value)}
-              className="flex h-9 w-full rounded-lg border border-input bg-card px-2.5 text-xs focus-visible:outline-none"
+              className="flex h-9 w-full rounded-md border border-input bg-card px-2.5 text-xs text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
             >
               <option value="all">All Recommendations</option>
               {HIRING_RECOMMENDATIONS.map((r) => (
@@ -224,12 +212,14 @@ export function HistoryPage({
             <select
               value={filterStatus}
               onChange={(e) => setFilterStatus(e.target.value)}
-              className="flex h-9 w-full rounded-lg border border-input bg-card px-2.5 text-xs focus-visible:outline-none"
+              className="flex h-9 w-full rounded-md border border-input bg-card px-2.5 text-xs text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
             >
               <option value="all">All Statuses</option>
               <option value="completed">Completed</option>
               <option value="in_progress">In Progress</option>
               <option value="paused">Paused</option>
+              <option value="draft">Ready to Start</option>
+              <option value="abandoned">Ended Early</option>
             </select>
           </div>
 
@@ -238,7 +228,7 @@ export function HistoryPage({
             <select
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value as any)}
-              className="flex h-9 flex-1 rounded-lg border border-input bg-card px-2.5 text-xs focus-visible:outline-none"
+              className="flex h-9 flex-1 rounded-md border border-input bg-card px-2.5 text-xs text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
             >
               <option value="date">Sort by Date</option>
               <option value="score">Sort by Score</option>
@@ -259,31 +249,34 @@ export function HistoryPage({
       </Card>
 
       {/* Sessions Table */}
-      <Card className="border-amber-200/70 bg-white shadow-sm hover:shadow-md transition-shadow duration-200 overflow-hidden">
+      <Card className="overflow-hidden">
         <CardContent className="p-0">
           {isLoading ? (
             <div className="py-16 text-center text-xs text-muted-foreground animate-pulse">
               Loading sessions from local database...
             </div>
           ) : filteredSessions.length === 0 ? (
-            <div className="py-16 text-center space-y-3">
-              <div className="h-12 w-12 rounded-full bg-secondary/80 flex items-center justify-center mx-auto text-muted-foreground">
-                <FileText className="h-6 w-6" />
-              </div>
-              <h4 className="text-sm font-semibold text-foreground">
-                No matching interview sessions found
-              </h4>
-              <p className="text-xs text-muted-foreground max-w-sm mx-auto">
-                {searchQuery || filterRecommendation !== 'all' || filterStatus !== 'all'
-                  ? 'Try clearing your search query or adjusting your filters.'
-                  : 'Start your first candidate interview to populate your history.'}
-              </p>
+            <div className="py-12">
+              <EmptyState
+                icon={<FileText className="h-8 w-8" />}
+                title="No matching interview sessions found"
+                description={
+                  searchQuery || filterRecommendation !== 'all' || filterStatus !== 'all'
+                    ? 'Try clearing your search query or adjusting your filters.'
+                    : 'Start your first candidate interview to populate your history.'
+                }
+                action={
+                  <Button variant="primary" size="sm" onClick={onCreateNew}>
+                    New Interview
+                  </Button>
+                }
+              />
             </div>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs">
                 <thead>
-                  <tr className="border-b border-border/70 bg-secondary/40 text-muted-foreground uppercase tracking-wider font-semibold">
+                  <tr className="border-b border-border bg-surface text-muted-foreground uppercase tracking-wider font-semibold">
                     <th className="py-3.5 pl-4">Candidate</th>
                     <th className="py-3.5">Position & Experience</th>
                     <th className="py-3.5">Interview Date</th>
@@ -293,26 +286,26 @@ export function HistoryPage({
                     <th className="py-3.5 text-right pr-4">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-border/40">
+                <tbody className="divide-y divide-border">
                   {filteredSessions.map((s) => {
                     const report = reports[s.id];
                     const rec =
                       report?.interviewerOverrideRecommendation || report?.hiringRecommendation;
 
                     return (
-                      <tr key={s.id} className="hover:bg-secondary/30 transition-colors">
+                      <tr key={s.id} className="hover:bg-muted/40 transition-colors">
                         <td className="py-3 pl-4">
-                          <span className="font-bold text-foreground block">
+                          <span className="font-semibold text-foreground block">
                             {s.candidateName}
                           </span>
-                          <span className="text-[11px] text-muted-foreground">
+                          <span className="text-caption text-muted-foreground">
                             {s.candidateEmail || 'No email'}
                           </span>
                         </td>
 
                         <td className="py-3">
                           <span className="text-foreground block">{s.jobPosition}</span>
-                          <span className="text-[11px] text-muted-foreground font-mono">
+                          <span className="text-caption text-muted-foreground font-mono">
                             {s.totalExperience} exp • {s.difficulty}
                           </span>
                         </td>
@@ -321,7 +314,7 @@ export function HistoryPage({
                           {formatDate(s.createdAt)}
                         </td>
 
-                        <td className="py-3 font-mono">
+                        <td className="py-3 font-mono tabular-nums">
                           {report ? (
                             <ScoreBadge score={report.overallScore100} size="sm" />
                           ) : (
@@ -339,18 +332,18 @@ export function HistoryPage({
 
                         <td className="py-3">
                           <span
-                            className={`inline-flex items-center px-2 py-0.5 rounded text-[11px] font-semibold ${
+                            className={`inline-flex items-center px-2 py-0.5 rounded-full text-caption font-semibold ${
                               s.status === 'completed'
-                                ? 'bg-emerald-500/10 text-emerald-700 border border-emerald-300'
+                                ? 'bg-success-subtle text-success border border-success-border'
                                 : s.status === 'in_progress'
-                                ? 'bg-amber-500/10 text-amber-800 border border-amber-300'
+                                ? 'bg-primary-subtle text-primary border border-primary/20'
                                 : s.status === 'paused'
-                                ? 'bg-amber-100 text-amber-900 border border-amber-300'
+                                ? 'bg-warning-subtle text-warning border border-warning-border'
                                 : s.status === 'draft'
-                                ? 'bg-amber-500/10 text-amber-700 border border-amber-300'
+                                ? 'bg-primary-subtle text-primary border border-primary/20'
                                 : s.status === 'abandoned'
-                                ? 'bg-rose-50 text-rose-800 border border-rose-300'
-                                : 'bg-secondary text-muted-foreground'
+                                ? 'bg-danger-subtle text-danger border border-danger-border'
+                                : 'bg-muted text-muted-foreground'
                             }`}
                           >
                             {s.status === 'completed'
@@ -370,18 +363,17 @@ export function HistoryPage({
                         <td className="py-3 text-right pr-4 space-x-1 whitespace-nowrap">
                           <Button
                             variant="outline"
-                            size="sm"
+                            size="xs"
                             onClick={() => handleAction(s)}
-                            className="text-xs h-7 px-2.5"
                           >
                             {s.status === 'completed' ? 'Open Report' : 'Resume'}
                           </Button>
 
                           <Button
                             variant="ghost"
-                            size="sm"
+                            size="icon-sm"
                             onClick={() => handleDownloadQA(s)}
-                            className="h-7 w-7 p-0 text-amber-700 hover:text-amber-900 hover:bg-amber-500/10"
+                            className="text-primary hover:text-primary hover:bg-primary-subtle"
                             title="Download Questions & Answers Guide PDF"
                           >
                             <FileDown className="h-3.5 w-3.5" />
@@ -390,9 +382,9 @@ export function HistoryPage({
                           {report && (
                             <Button
                               variant="ghost"
-                              size="sm"
+                              size="icon-sm"
                               onClick={() => generateReportPdf(report)}
-                              className="h-7 w-7 p-0 text-muted-foreground hover:text-foreground"
+                              className="text-muted-foreground hover:text-foreground"
                               title="Download Report PDF"
                             >
                               <Download className="h-3.5 w-3.5" />
@@ -401,9 +393,9 @@ export function HistoryPage({
 
                           <Button
                             variant="ghost"
-                            size="sm"
+                            size="icon-sm"
                             onClick={() => setSessionToDelete(s)}
-                            className="h-7 w-7 p-0 text-rose-400 hover:text-rose-300 hover:bg-rose-500/10"
+                            className="text-danger hover:text-danger hover:bg-danger-subtle"
                             title="Delete Interview Session"
                           >
                             <Trash2 className="h-3.5 w-3.5" />
@@ -427,26 +419,24 @@ export function HistoryPage({
         maxWidth="sm"
       >
         <div className="space-y-4">
-          <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
+          <p className="text-body text-muted-foreground leading-relaxed">
             Are you sure you want to permanently delete the interview session for{' '}
             <strong className="text-foreground">{sessionToDelete?.candidateName}</strong>?
             This will permanently remove the questions, candidate evaluations, DSA submissions, and final reports from your local browser database.
           </p>
 
-          <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-border/60">
+          <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-border">
             <Button
               variant="outline"
               size="sm"
               onClick={() => setSessionToDelete(null)}
-              className="h-8 px-4 text-xs font-semibold rounded-lg"
             >
               Cancel
             </Button>
             <Button
-              variant="destructive"
+              variant="danger"
               size="sm"
               onClick={handleDelete}
-              className="h-8 px-4 text-xs font-bold rounded-lg"
             >
               Delete Permanently
             </Button>
@@ -456,4 +446,3 @@ export function HistoryPage({
     </div>
   );
 }
-

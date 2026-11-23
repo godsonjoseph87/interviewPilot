@@ -6,10 +6,8 @@ import {
   Send,
   Copy,
   Check,
-  CheckCircle2,
   Clock,
   Layers,
-  HelpCircle,
   FileQuestion,
   AlertTriangle,
   Lightbulb,
@@ -18,6 +16,7 @@ import {
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import { Textarea } from '@/components/ui/Textarea';
+import { CodeEditor } from '@/components/ui/CodeEditor';
 import { RichMarkdown, cleanAssistantText } from '@/components/common/RichMarkdown';
 import { useInterviewSessionStore } from '@/store/useInterviewSessionStore';
 import { regenerateDsaProblem, askInterviewerAssistant, evaluateDsaSubmission } from '@/services/ai';
@@ -195,349 +194,318 @@ export function DsaMainPanel() {
   };
 
   return (
-    <div className="flex-1 overflow-y-auto min-h-0 px-[10%] pt-[80px] pb-16 space-y-6 animate-fade-in select-text">
-      <div className="max-w-7xl mx-auto space-y-6 pb-16">
-        {/* 1. Header Bar: Meta & Problem Title */}
-        <div className="flex flex-wrap items-center justify-between gap-4 pb-4 border-b border-amber-200/70 dark:border-white/20">
-          <div className="flex flex-wrap items-center gap-2">
-            <Badge variant="default" className="h-8 px-3 rounded-lg text-xs font-bold bg-amber-500 text-stone-950 inline-flex items-center">
-              DSA Problem #{problem.number || currentDsaIndex + 1} of {dsaProblems.length}
-            </Badge>
-            <Badge variant="outline" className="h-8 px-3 rounded-lg text-xs font-mono border-amber-300 text-amber-900 bg-amber-50 dark:border-white/20 dark:bg-zinc-900 dark:text-white inline-flex items-center">
-              {dsaLanguage.toUpperCase()}
-            </Badge>
-            <Badge variant="secondary" className="h-8 px-3 rounded-lg text-xs inline-flex items-center">
-              Non-Graph Algorithm
-            </Badge>
-          </div>
-
-          <div className="flex items-center gap-2 sm:gap-3">
-            <div className="h-8 px-3 rounded-lg border border-stone-200/80 dark:border-white/20 bg-stone-50/80 dark:bg-zinc-900 inline-flex items-center gap-2 text-xs font-mono text-muted-foreground shadow-2xs">
-              <Clock className="h-3.5 w-3.5 text-amber-600 dark:text-white" />
-              <span>Target: {problem.suggestedTimeMinutes}m</span>
-            </div>
-
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleRefreshProblem}
-              disabled={isRefreshing}
-              isLoading={isRefreshing}
-              className="h-8 px-4 min-w-[130px] text-xs font-semibold inline-flex items-center justify-center gap-1.5 rounded-lg border-amber-300/80 text-stone-800 bg-white hover:bg-amber-50 dark:border-white/20 dark:bg-zinc-900 dark:text-zinc-200 dark:hover:bg-zinc-800 shadow-xs hover:shadow-sm"
-              title="Generate a completely new non-graph DSA problem"
-            >
-              <RotateCw className="h-3.5 w-3.5 text-amber-600 dark:text-white" />
-              <span>Refresh Problem</span>
-            </Button>
-          </div>
+    <div className="flex-1 overflow-y-auto p-6 max-w-7xl mx-auto w-full space-y-6">
+      {/* 1. Header Bar: Meta & Problem Title */}
+      <div className="flex flex-wrap items-center justify-between gap-4 pb-4 border-b border-border">
+        <div className="flex flex-wrap items-center gap-2">
+          <Badge variant="default" className="h-8 px-3 rounded-md text-xs font-semibold inline-flex items-center">
+            DSA Problem #{problem.number || currentDsaIndex + 1} of {dsaProblems.length}
+          </Badge>
+          <Badge variant="outline" className="h-8 px-3 rounded-md text-xs font-mono inline-flex items-center">
+            {dsaLanguage.toUpperCase()}
+          </Badge>
+          <Badge variant="secondary" className="h-8 px-3 rounded-md text-xs inline-flex items-center">
+            Non-Graph Algorithm
+          </Badge>
         </div>
 
-        {refreshError && (
-          <div className="p-3 rounded-lg border border-rose-500/30 bg-rose-50 text-rose-800 text-xs">
-            {refreshError}
+        <div className="flex items-center gap-2 sm:gap-3">
+          <div className="h-8 px-3 rounded-md border border-border bg-surface-raised inline-flex items-center gap-2 text-xs font-mono tabular-nums text-muted-foreground shadow-xs">
+            <Clock className="h-3.5 w-3.5 text-primary" />
+            <span>Target: {problem.suggestedTimeMinutes}m</span>
           </div>
-        )}
 
-        {/* 2. Problem Title as Main Heading */}
-        <div className="space-y-1">
-          <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold tracking-tight text-foreground leading-snug">
-            {problem.title}
-          </h1>
-          <p className="text-xs text-muted-foreground font-mono">
-            Optimal Complexity: <span className="font-bold text-amber-700">{problem.expectedTimeComplexity}</span> time • <span className="font-bold text-amber-700">{problem.expectedSpaceComplexity}</span> space
-          </p>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleRefreshProblem}
+            disabled={isRefreshing}
+            isLoading={isRefreshing}
+            className="text-xs font-semibold"
+            title="Generate a completely new non-graph DSA problem"
+          >
+            <RotateCw className="h-3.5 w-3.5 mr-1 text-primary" />
+            <span>Refresh Problem</span>
+          </Button>
         </div>
+      </div>
 
-        {/* 3. Two-Column Layout */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 pt-2">
-          {/* Left Column: Problem Details, Interviewer Guide, & Working Solution (7 cols) */}
-          <div className="lg:col-span-7 space-y-5">
-            {/* Problem Statement Card */}
-            <div className="rounded-xl border border-amber-200/70 bg-white overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-200">
-              <div className="px-5 py-3 border-b border-amber-200/60 bg-amber-50/40 flex items-center gap-2 text-sm font-bold text-stone-900">
-                <FileQuestion className="h-4 w-4 text-amber-600" />
-                <span>Problem Statement & Constraints</span>
-              </div>
-              <div className="p-5 space-y-4 text-xs sm:text-sm text-stone-900 leading-relaxed">
-                <p className="whitespace-pre-line">{problem.description}</p>
+      {refreshError && (
+        <div className="p-3 rounded-lg border border-danger-border bg-danger-subtle text-danger text-xs">
+          {refreshError}
+        </div>
+      )}
 
       {/* 2. Problem Title as Main Heading */}
       <div className="space-y-1">
-        <h1 className="text-base sm:text-lg lg:text-xl font-semibold tracking-tight text-foreground leading-snug">
+        <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-foreground leading-snug">
           {problem.title}
         </h1>
         <p className="text-xs text-muted-foreground font-mono">
-          Optimal Complexity: <span className="font-bold text-amber-700">{problem.expectedTimeComplexity}</span> time • <span className="font-bold text-amber-700">{problem.expectedSpaceComplexity}</span> space
+          Optimal Complexity: <span className="font-semibold text-primary">{problem.expectedTimeComplexity}</span> time • <span className="font-semibold text-primary">{problem.expectedSpaceComplexity}</span> space
         </p>
       </div>
 
-                {/* Sample Inputs and Outputs */}
-                {problem.sampleInputs && problem.sampleInputs.length > 0 && (
-                  <div className="space-y-2 pt-2 border-t border-stone-100">
-                    <span className="text-xs font-bold text-stone-950 uppercase tracking-wider block">
-                      Sample Examples:
-                    </span>
-                    <div className="space-y-2">
-                      {problem.sampleInputs.map((inp, i) => (
-                        <div key={i} className="p-2.5 rounded-lg bg-stone-50 border border-stone-200 text-xs font-mono space-y-1">
-                          <div>
-                            <span className="text-amber-800 font-bold">Input: </span>
-                            <span className="text-stone-900">{inp}</span>
-                          </div>
-                          {problem.sampleOutputs?.[i] && (
-                            <div>
-                              <span className="text-emerald-800 font-bold">Output: </span>
-                              <span className="text-stone-900">{problem.sampleOutputs[i]}</span>
-                            </div>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {/* Edge Cases to Test */}
-                {problem.edgeCases && problem.edgeCases.length > 0 && (
-                  <div className="space-y-1.5 pt-2 border-t border-stone-100">
-                    <span className="text-xs font-bold text-rose-900 uppercase tracking-wider flex items-center gap-1.5">
-                      <AlertTriangle className="h-3.5 w-3.5 text-rose-600" />
-                      <span>Critical Edge Cases to Test:</span>
-                    </span>
-                    <div className="flex flex-wrap gap-1.5">
-                      {problem.edgeCases.map((ec, i) => (
-                        <span
-                          key={i}
-                          className="px-2 py-0.5 rounded-md bg-rose-50 border border-rose-200 text-rose-900 text-[11px]"
-                        >
-                          {ec}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
+      {/* 3. Two-Column Layout */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 pt-2">
+        {/* Left Column: Problem Details, Interviewer Guide, & Working Solution (7 cols) */}
+        <div className="lg:col-span-7 space-y-5">
+          {/* Problem Statement Card */}
+          <div className="rounded-lg border border-border bg-card overflow-hidden shadow-xs">
+            <div className="px-5 py-3 border-b border-border bg-surface flex items-center gap-2 text-sm font-semibold text-foreground">
+              <FileQuestion className="h-4 w-4 text-primary" />
+              <span>Problem Statement & Constraints</span>
             </div>
+            <div className="p-5 space-y-4 text-xs sm:text-sm text-foreground leading-relaxed">
+              <p className="whitespace-pre-line">{problem.description}</p>
 
-            {/* Interviewer Explanation Guide Card */}
-            <div className="rounded-xl border border-amber-200/70 bg-white overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-200">
-              <div className="px-5 py-3 border-b border-amber-200/60 bg-amber-50/40 flex items-center gap-2 text-sm font-bold text-stone-900">
-                <Layers className="h-4 w-4 text-amber-600" />
-                <span>Interviewer Explanation & Algorithmic Guide</span>
-              </div>
-              <div className="p-5 text-xs sm:text-sm text-stone-900 leading-relaxed whitespace-pre-line space-y-3">
-                {problem.detailedExplanation ? (
-                  <div className="prose prose-sm max-w-none text-stone-900">
-                    {problem.detailedExplanation}
-                  </div>
-                ) : (
+              {/* Sample Inputs and Outputs */}
+              {problem.sampleInputs && problem.sampleInputs.length > 0 && (
+                <div className="space-y-2 pt-2 border-t border-border">
+                  <span className="text-xs font-semibold text-foreground uppercase tracking-wider block">
+                    Sample Examples:
+                  </span>
                   <div className="space-y-2">
-                    <p><strong>Expected Approach:</strong> {problem.expectedApproach}</p>
-                    <p><strong>Target Time Complexity:</strong> {problem.expectedTimeComplexity}</p>
-                    <p><strong>Target Space Complexity:</strong> {problem.expectedSpaceComplexity}</p>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* Optimal Working Code Solution Card */}
-            <div className="rounded-xl border border-stone-200/90 bg-white overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-200">
-              <div className="px-5 py-3 border-b border-stone-200 bg-stone-50 flex items-center justify-between">
-                <div className="flex items-center gap-2 text-sm font-bold text-stone-900">
-                  <Code2 className="h-4 w-4 text-amber-600" />
-                  <span>Optimal Working Code Solution ({dsaLanguage.toUpperCase()})</span>
-                </div>
-                {problem.workingCode && (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={handleCopyCode}
-                    className="h-7 px-2 text-xs flex items-center gap-1 text-stone-700 hover:text-stone-950 shadow-2xs hover:shadow-xs"
-                    title="Copy working solution to clipboard"
-                  >
-                    {copiedCode ? (
-                      <>
-                        <Check className="h-3 w-3 text-emerald-600" />
-                        <span className="text-emerald-700 font-bold">Copied!</span>
-                      </>
-                    ) : (
-                      <>
-                        <Copy className="h-3 w-3 text-stone-600" />
-                        <span>Copy Code</span>
-                      </>
-                    )}
-                  </Button>
-                )}
-              </div>
-              <div className="p-4 bg-slate-950 overflow-x-auto text-slate-100 font-mono text-xs leading-relaxed max-h-96">
-                <pre>{problem.workingCode || '// Working code will be generated by AI or is available in standard libraries.'}</pre>
-              </div>
-            </div>
-          </div>
-
-          {/* Right Column: Gemini Chat Assistant & Candidate Code Evaluation (5 cols) */}
-          <div className="lg:col-span-5 space-y-5">
-            {/* Gemini Chat Assistant Window */}
-            <div className="rounded-xl border border-amber-300/80 bg-white overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-200 flex flex-col h-[460px]">
-              {/* Chat Header */}
-              <div className="px-4 py-3 border-b border-amber-200 bg-gradient-to-r from-amber-500/15 to-yellow-500/10 flex items-center justify-between shrink-0">
-                <div className="flex items-center gap-2">
-                  <div className="p-1 rounded-lg bg-amber-500/20 text-amber-800">
-                    <Sparkles className="h-4 w-4" />
-                  </div>
-                  <div>
-                    <h3 className="text-xs font-bold text-stone-950">Gemini Interviewer Copilot</h3>
-                    <p className="text-[10px] text-stone-500">Live problem guidance & candidate analysis</p>
+                    {problem.sampleInputs.map((inp, i) => (
+                      <div key={i} className="p-2.5 rounded-lg bg-surface-raised border border-border text-xs font-mono space-y-1">
+                        <div>
+                          <span className="text-primary font-semibold">Input: </span>
+                          <span className="text-foreground">{inp}</span>
+                        </div>
+                        {problem.sampleOutputs?.[i] && (
+                          <div>
+                            <span className="text-success font-semibold">Output: </span>
+                            <span className="text-foreground">{problem.sampleOutputs[i]}</span>
+                          </div>
+                        )}
+                      </div>
+                    ))}
                   </div>
                 </div>
-                <Badge variant="accent" className="text-[10px] px-1.5 py-0 bg-amber-100 text-amber-900 border-amber-300">
-                  AI Live
-                </Badge>
-              </div>
+              )}
 
-              {/* Quick Prompt Suggestions */}
-              <div className="px-3 py-2 border-b border-stone-100 bg-stone-50/80 flex items-center gap-1.5 overflow-x-auto shrink-0 text-[10px]">
-                <button
-                  type="button"
-                  onClick={() => handleSendMessage('What progressive hints can I give the candidate if they get stuck?')}
-                  className="px-2 py-1 rounded-md bg-white border border-amber-200 hover:border-amber-400 text-stone-800 whitespace-nowrap transition-all shadow-2xs hover:shadow-xs flex items-center gap-1"
-                >
-                  <Lightbulb className="h-3 w-3 text-amber-600" />
-                  <span>Give Hint</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => handleSendMessage('What is the optimal time and space complexity with trade-offs?')}
-                  className="px-2 py-1 rounded-md bg-white border border-amber-200 hover:border-amber-400 text-stone-800 whitespace-nowrap transition-all shadow-2xs hover:shadow-xs flex items-center gap-1"
-                >
-                  <Clock className="h-3 w-3 text-amber-600" />
-                  <span>Complexity</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => handleSendMessage('What edge cases should I test against the candidate code?')}
-                  className="px-2 py-1 rounded-md bg-white border border-amber-200 hover:border-amber-400 text-stone-800 whitespace-nowrap transition-all shadow-2xs hover:shadow-xs flex items-center gap-1"
-                >
-                  <AlertTriangle className="h-3 w-3 text-rose-600" />
-                  <span>Edge Cases</span>
-                </button>
-              </div>
-
-              {/* Messages Scroll Area */}
-              <div
-                ref={chatContainerRef}
-                className="flex-1 overflow-y-auto p-4 space-y-3 text-xs scroll-smooth"
-              >
-                {chatMessages.map((msg, i) => (
-                  <div
-                    key={i}
-                    className={`flex flex-col ${msg.sender === 'user' ? 'items-end' : 'items-start'}`}
-                  >
-                    <div
-                      className={`max-w-[90%] p-3 rounded-xl leading-relaxed text-xs ${msg.sender === 'user'
-                        ? 'bg-amber-500 text-stone-950 font-medium rounded-tr-none whitespace-pre-line'
-                        : 'bg-stone-50 border border-stone-200 text-stone-900 rounded-tl-none shadow-2xs'
-                        }`}
-                    >
-                      {msg.sender === 'assistant' ? (
-                        <RichMarkdown content={msg.text} />
-                      ) : (
-                        msg.text
-                      )}
-                    </div>
+              {/* Edge Cases to Test */}
+              {problem.edgeCases && problem.edgeCases.length > 0 && (
+                <div className="space-y-1.5 pt-2 border-t border-border">
+                  <span className="text-xs font-semibold text-danger uppercase tracking-wider flex items-center gap-1.5">
+                    <AlertTriangle className="h-3.5 w-3.5 text-danger" />
+                    <span>Critical Edge Cases to Test:</span>
+                  </span>
+                  <div className="flex flex-wrap gap-1.5">
+                    {problem.edgeCases.map((ec, i) => (
+                      <span
+                        key={i}
+                        className="px-2 py-0.5 rounded-md bg-danger-subtle border border-danger-border text-danger text-xs font-mono"
+                      >
+                        {ec}
+                      </span>
+                    ))}
                   </div>
-                ))}
-                {isAssistantThinking && (
-                  <div className="flex items-center gap-2 text-stone-500 text-xs italic">
-                    <div className="h-3 w-3 rounded-full border-2 border-amber-600 border-t-transparent animate-spin" />
-                    <span>Gemini is analyzing problem context...</span>
-                  </div>
-                )}
-                <div ref={chatMessagesEndRef} className="h-0 w-0" />
-              </div>
-
-              {/* Chat Input Bar */}
-              <div className="p-2.5 border-t border-stone-200 bg-white flex items-center gap-2 shrink-0">
-                <input
-                  type="text"
-                  value={chatInput}
-                  onChange={(e) => setChatInput(e.target.value)}
-                  onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()}
-                  placeholder="Ask Gemini about candidate's approach, hints, complexities..."
-                  className="flex-1 text-xs px-3 py-2 rounded-lg border border-stone-200 bg-stone-50 text-stone-900 focus:outline-none focus:ring-1 focus:ring-amber-500"
-                />
-                <Button
-                  size="sm"
-                  onClick={() => handleSendMessage()}
-                  disabled={isAssistantThinking || !chatInput.trim()}
-                  className="h-8 px-3 text-xs font-bold"
-                >
-                  <Send className="h-3 w-3" />
-                </Button>
-              </div>
-            </div>
-
-            {/* Candidate Code Submission & Scoring Card */}
-            <div className="rounded-xl border border-amber-200/70 bg-white p-5 space-y-4 shadow-sm hover:shadow-md transition-shadow duration-200">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Terminal className="h-4 w-4 text-amber-600" />
-                  <h3 className="text-sm font-bold text-stone-900">Candidate Code Submission</h3>
-                </div>
-                <span className="text-[11px] font-mono text-muted-foreground">{dsaLanguage}</span>
-              </div>
-
-              <Textarea
-                value={candidateCode}
-                onChange={(e) => {
-                  setCandidateCode(e.target.value);
-                  submitDsaCode(problem.id, dsaLanguage, e.target.value, submission?.review);
-                }}
-                placeholder={`Paste or type candidate's ${dsaLanguage} code here to review correctness, edge cases, and time/space complexity...`}
-                rows={8}
-                className="font-mono text-xs leading-relaxed bg-slate-950 text-slate-100 border-stone-800"
-              />
-
-              <div className="flex items-center justify-between pt-1">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleEvaluateCandidateCode}
-                  disabled={isEvaluating || !candidateCode.trim()}
-                  isLoading={isEvaluating}
-                  className="text-xs font-semibold border-amber-300 text-stone-800 bg-white hover:bg-amber-50 shadow-xs hover:shadow-sm"
-                >
-                  <Sparkles className="h-3.5 w-3.5 mr-1.5 text-amber-600" />
-                  <span>Analyze with AI</span>
-                </Button>
-
-                <div className="flex items-center gap-2">
-                  <label className="text-xs font-bold text-stone-700">Interviewer Score:</label>
-                  <input
-                    type="number"
-                    min={0}
-                    max={100}
-                    value={interviewerScore}
-                    onChange={(e) => {
-                      const val = Math.min(100, Math.max(0, Number(e.target.value)));
-                      setInterviewerScore(val);
-                      updateDsaInterviewerScore(problem.id, val);
-                    }}
-                    className="w-16 h-8 text-xs font-mono font-bold px-2 rounded-lg border border-stone-200 bg-stone-50 text-center"
-                  />
-                  <span className="text-xs font-mono text-stone-500">/ 100</span>
-                </div>
-              </div>
-
-              {submission?.review && (
-                <div className="p-3 rounded-lg bg-emerald-50 border border-emerald-200 text-xs space-y-1">
-                  <div className="flex items-center justify-between font-bold text-emerald-950">
-                    <span>AI Review Summary</span>
-                    <span>{submission.review.overallScore100} / 100</span>
-                  </div>
-                  <p className="text-stone-700 leading-relaxed">{submission.review.interviewerSummary}</p>
                 </div>
               )}
             </div>
+          </div>
+
+          {/* Interviewer Explanation Guide Card */}
+          <div className="rounded-lg border border-border bg-card overflow-hidden shadow-xs">
+            <div className="px-5 py-3 border-b border-border bg-surface flex items-center gap-2 text-sm font-semibold text-foreground">
+              <Layers className="h-4 w-4 text-primary" />
+              <span>Interviewer Explanation & Algorithmic Guide</span>
+            </div>
+            <div className="p-5 text-xs sm:text-sm text-foreground leading-relaxed whitespace-pre-line space-y-3">
+              {problem.detailedExplanation ? (
+                <div className="prose prose-sm max-w-none text-foreground">
+                  {problem.detailedExplanation}
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  <p><strong>Expected Approach:</strong> {problem.expectedApproach}</p>
+                  <p><strong>Target Time Complexity:</strong> {problem.expectedTimeComplexity}</p>
+                  <p><strong>Target Space Complexity:</strong> {problem.expectedSpaceComplexity}</p>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Optimal Working Code Solution Card with Full Code Editor */}
+          <div className="space-y-2">
+            <div className="flex items-center gap-2 text-sm font-semibold text-foreground px-1">
+              <Code2 className="h-4 w-4 text-primary" />
+              <span>Optimal Working Code Solution ({dsaLanguage.toUpperCase()})</span>
+            </div>
+            <CodeEditor
+              value={problem.workingCode || '// No reference code available'}
+              language={dsaLanguage}
+              fileName={`OptimalSolution.${dsaLanguage === 'python' ? 'py' : dsaLanguage === 'cpp' ? 'cpp' : dsaLanguage === 'javascript' ? 'js' : 'java'}`}
+              readOnly={true}
+              allowEditToggle={true}
+              minHeight="280px"
+              maxHeight="520px"
+            />
+          </div>
+        </div>
+
+        {/* Right Column: AI Assistant Chat & Candidate Code Scoring (5 cols) */}
+        <div className="lg:col-span-5 space-y-5">
+          {/* Gemini Chat Assistant Card */}
+          <div className="rounded-lg border border-border bg-card overflow-hidden shadow-xs flex flex-col h-[400px]">
+            <div className="px-4 py-2.5 border-b border-border bg-surface flex items-center justify-between shrink-0">
+              <div className="flex items-center gap-2">
+                <Sparkles className="h-4 w-4 text-primary" />
+                <h3 className="text-sm font-semibold text-foreground">Interviewer Copilot</h3>
+              </div>
+              <Badge variant="outline" className="text-caption font-mono">
+                Gemini
+              </Badge>
+            </div>
+
+            {/* Quick Prompt Chips */}
+            <div className="px-3 py-2 border-b border-border bg-surface-raised flex items-center gap-1.5 overflow-x-auto text-xs shrink-0">
+              <span className="text-muted-foreground text-caption shrink-0">Quick Probes:</span>
+              <button
+                type="button"
+                onClick={() => handleSendMessage('What are 3 subtle hints I can give if candidate is stuck?')}
+                className="px-2 py-0.5 rounded-full bg-card hover:bg-muted text-muted-foreground hover:text-foreground border border-border whitespace-nowrap text-caption transition-colors"
+              >
+                Hints to give
+              </button>
+              <button
+                type="button"
+                onClick={() => handleSendMessage('What is the brute force approach and its time/space complexity?')}
+                className="px-2 py-0.5 rounded-full bg-card hover:bg-muted text-muted-foreground hover:text-foreground border border-border whitespace-nowrap text-caption transition-colors"
+              >
+                Brute force
+              </button>
+              <button
+                type="button"
+                onClick={() => handleSendMessage('How can I test the edge cases for this problem?')}
+                className="px-2 py-0.5 rounded-full bg-card hover:bg-muted text-muted-foreground hover:text-foreground border border-border whitespace-nowrap text-caption transition-colors"
+              >
+                Edge tests
+              </button>
+            </div>
+
+            {/* Chat Messages Body */}
+            <div ref={chatContainerRef} className="flex-1 overflow-y-auto p-4 space-y-3 text-xs leading-relaxed">
+              {chatMessages.map((msg, idx) => (
+                <div
+                  key={idx}
+                  className={`flex gap-2.5 ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}
+                >
+                  {msg.sender === 'assistant' && (
+                    <div className="h-6 w-6 rounded-md bg-primary-subtle text-primary border border-primary/20 flex items-center justify-center shrink-0 mt-0.5">
+                      <Sparkles className="h-3.5 w-3.5" />
+                    </div>
+                  )}
+                  <div
+                    className={`max-w-[85%] rounded-lg p-3 text-xs leading-relaxed ${msg.sender === 'user'
+                      ? 'bg-primary-subtle text-primary border border-primary/30 font-medium'
+                      : 'bg-surface-raised border border-border text-foreground'
+                      }`}
+                  >
+                    {msg.sender === 'assistant' ? (
+                      <RichMarkdown content={msg.text} />
+                    ) : (
+                      <p className="whitespace-pre-line">{msg.text}</p>
+                    )}
+                  </div>
+                </div>
+              ))}
+              {isAssistantThinking && (
+                <div className="flex items-center gap-2 text-muted-foreground text-xs italic">
+                  <div className="h-3 w-3 rounded-full border-2 border-primary border-t-transparent animate-spin" />
+                  <span>Gemini is analyzing problem context...</span>
+                </div>
+              )}
+              <div ref={chatMessagesEndRef} className="h-0 w-0" />
+            </div>
+
+            {/* Chat Input Bar */}
+            <div className="p-2.5 border-t border-border bg-surface flex items-center gap-2 shrink-0">
+              <input
+                type="text"
+                value={chatInput}
+                onChange={(e) => setChatInput(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()}
+                placeholder="Ask Gemini about candidate's approach, hints, complexities..."
+                className="flex-1 text-xs px-3 py-2 rounded-md border border-input bg-card text-foreground focus:outline-none focus:ring-1 focus:ring-ring"
+              />
+              <Button
+                size="sm"
+                variant="primary"
+                onClick={() => handleSendMessage()}
+                disabled={isAssistantThinking || !chatInput.trim()}
+                className="h-8 px-3 text-xs font-semibold"
+              >
+                <Send className="h-3 w-3" />
+              </Button>
+            </div>
+          </div>
+
+          {/* Candidate Code Submission & Scoring Card */}
+          <div className="rounded-lg border border-border bg-card p-5 space-y-4 shadow-xs">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Terminal className="h-4 w-4 text-primary" />
+                <h3 className="text-sm font-semibold text-foreground">Candidate Code Submission</h3>
+              </div>
+              <span className="text-caption font-mono text-muted-foreground">{dsaLanguage}</span>
+            </div>
+
+            <CodeEditor
+              value={candidateCode}
+              onChange={(val) => {
+                setCandidateCode(val);
+                submitDsaCode(problem.id, dsaLanguage, val, submission?.review);
+              }}
+              language={dsaLanguage}
+              fileName={`CandidateSubmission.${dsaLanguage === 'python' ? 'py' : dsaLanguage === 'cpp' ? 'cpp' : dsaLanguage === 'javascript' ? 'js' : 'java'}`}
+              readOnly={false}
+              allowEditToggle={false}
+              minHeight="220px"
+              maxHeight="380px"
+            />
+
+            <div className="flex items-center justify-between pt-1">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleEvaluateCandidateCode}
+                disabled={isEvaluating || !candidateCode.trim()}
+                isLoading={isEvaluating}
+                className="text-xs font-semibold"
+              >
+                <Sparkles className="h-3.5 w-3.5 mr-1.5 text-primary" />
+                <span>Analyze with AI</span>
+              </Button>
+
+              <div className="flex items-center gap-2">
+                <label className="text-xs font-semibold text-foreground">Interviewer Score:</label>
+                <input
+                  type="number"
+                  min={0}
+                  max={100}
+                  value={interviewerScore}
+                  onChange={(e) => {
+                    const val = Math.min(100, Math.max(0, Number(e.target.value)));
+                    setInterviewerScore(val);
+                    updateDsaInterviewerScore(problem.id, val);
+                  }}
+                  className="w-16 h-8 text-xs font-mono tabular-nums font-bold px-2 rounded-md border border-input bg-card text-center text-foreground"
+                />
+                <span className="text-xs font-mono text-muted-foreground">/ 100</span>
+              </div>
+            </div>
+
+            {submission?.review && (
+              <div className="p-3 rounded-lg bg-surface-raised border border-border text-xs space-y-1">
+                <div className="flex items-center justify-between font-bold text-foreground">
+                  <span>AI Review Summary</span>
+                  <span className="font-mono text-primary">{submission.review.overallScore100} / 100</span>
+                </div>
+                <p className="text-muted-foreground leading-relaxed">{submission.review.interviewerSummary}</p>
+              </div>
+            )}
           </div>
         </div>
       </div>

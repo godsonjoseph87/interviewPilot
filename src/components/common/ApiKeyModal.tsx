@@ -34,30 +34,36 @@ export function ApiKeyModal({ isOpen, onClose, onSuccess }: ApiKeyModalProps) {
       isOpen={isOpen}
       onClose={onClose}
       title={
-        <div className="flex items-center gap-2">
-          <Bot className={`h-5 w-5 ${isConnected ? 'text-emerald-500' : 'text-stone-400'}`} />
-          <span>Gemini AI</span>
+        <div className="flex items-center gap-2.5">
+          <div className="h-9 w-9 rounded-lg bg-accent-2-subtle border border-accent-2-border text-accent-2 flex items-center justify-center font-semibold shrink-0">
+            <Bot className="h-4.5 w-4.5" />
+          </div>
+          <span>Gemini AI Connection</span>
         </div>
       }
+      description="Configure your Google Gemini API key to power adaptive questions and copilot assistance."
     >
       <form onSubmit={handleSave} className="space-y-4">
         {isConnected ? (
-          <div className="flex items-center justify-between p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-xs">
-            <div className="flex items-center gap-2 text-emerald-600 dark:text-emerald-400 font-medium">
-              <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+          <div className="flex items-center justify-between p-3.5 rounded-lg border border-border bg-card card-surface ai-surface text-caption">
+            <div className="flex items-center gap-2 text-accent-2 font-medium">
+              <span className="relative flex h-2 w-2 mr-1">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-accent-2 opacity-75" />
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-accent-2" />
+              </span>
               <span>AI Connected & Ready</span>
             </div>
-            <span className="text-[11px] font-mono text-muted-foreground">Active</span>
+            <span className="font-mono text-muted-foreground">Active</span>
           </div>
         ) : (
-          <div className="flex items-center gap-2 p-3 rounded-xl bg-stone-100 dark:bg-stone-900 border border-border text-xs text-muted-foreground">
-            <span className="h-2 w-2 rounded-full bg-stone-400" />
-            <span>Not Connected</span>
+          <div className="flex items-center gap-2 p-3.5 rounded-lg border border-border bg-card card-surface ai-surface text-caption text-muted-foreground">
+            <span className="h-2 w-2 rounded-full bg-muted-foreground mr-1" />
+            <span>Not Connected — using calibrated local mocks</span>
           </div>
         )}
 
-        <div>
-          <label className="block text-xs font-semibold text-foreground mb-1.5">
+        <div className="space-y-1.5">
+          <label className="block text-caption font-semibold text-foreground">
             API Key
           </label>
           <Input
@@ -65,30 +71,28 @@ export function ApiKeyModal({ isOpen, onClose, onSuccess }: ApiKeyModalProps) {
             placeholder="Enter Gemini API key (AIzaSy...)"
             value={apiKeyInput}
             onChange={(e) => setApiKeyInput(e.target.value)}
-            className="font-mono text-sm"
+            className="font-mono text-small"
             autoFocus
           />
         </div>
 
-        <div className="flex items-center justify-end gap-3 pt-3 border-t border-border/60">
+        <div className="flex items-center justify-end gap-2.5 pt-4 border-t border-border">
           <Button
             type="button"
             variant="outline"
             size="sm"
             onClick={onClose}
-            className="h-8 px-4 text-xs font-semibold rounded-lg"
           >
-            Close
+            Cancel
           </Button>
           <Button
             type="submit"
             size="sm"
             disabled={!apiKeyInput.trim()}
-            className="h-8 px-4 text-xs font-bold rounded-lg"
           >
             {isSaved ? (
-              <span className="flex items-center gap-1.5 text-emerald-400">
-                <CheckCircle className="h-4 w-4" />
+              <span className="flex items-center gap-1.5 text-success-foreground">
+                <CheckCircle className="h-4 w-4 text-success" />
                 <span>Saved</span>
               </span>
             ) : (

@@ -81,14 +81,14 @@ function renderInline(text: string, keyPrefix: string): React.ReactNode {
     const key = `${keyPrefix}-${i}`;
     if (token.type === 'bold') {
       return (
-        <strong key={key} className="font-bold text-stone-950">
+        <strong key={key} className="font-semibold text-foreground">
           {token.content}
         </strong>
       );
     }
     if (token.type === 'italic') {
       return (
-        <em key={key} className="italic text-stone-800">
+        <em key={key} className="italic text-foreground/90">
           {token.content}
         </em>
       );
@@ -97,7 +97,7 @@ function renderInline(text: string, keyPrefix: string): React.ReactNode {
       return (
         <code
           key={key}
-          className="px-1.5 py-0.5 mx-0.5 rounded-md bg-amber-100/80 border border-amber-300/80 text-amber-950 font-mono text-[11px] font-semibold"
+          className="px-1.5 py-0.5 mx-0.5 rounded border border-border bg-surface-raised text-primary font-mono text-caption font-medium select-all"
         >
           {token.content}
         </code>
@@ -122,28 +122,29 @@ function BlockCode({ code, lang }: BlockCodeProps) {
   };
 
   return (
-    <div className="my-2 rounded-xl border border-stone-800 bg-stone-950 overflow-hidden text-xs shadow-xs">
-      <div className="flex items-center justify-between px-3 py-1.5 bg-stone-900 border-b border-stone-800 text-[10px] text-stone-400 font-mono">
+    <div className="my-2 rounded-md border border-border bg-surface-raised overflow-hidden text-caption shadow-2xs">
+      <div className="flex items-center justify-between px-3 py-1.5 bg-muted/40 border-b border-border text-caption font-mono text-muted-foreground">
         <span>{lang || 'code'}</span>
         <button
           type="button"
           onClick={handleCopy}
-          className="flex items-center gap-1 text-stone-300 hover:text-white transition-colors cursor-pointer"
+          className="flex items-center gap-1 text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+          aria-label="Copy code to clipboard"
         >
           {copied ? (
             <>
-              <Check className="h-3 w-3 text-emerald-400" />
-              <span className="text-emerald-400">Copied</span>
+              <Check className="h-3.5 w-3.5 text-success" />
+              <span className="text-success">Copied</span>
             </>
           ) : (
             <>
-              <Copy className="h-3 w-3" />
+              <Copy className="h-3.5 w-3.5" />
               <span>Copy</span>
             </>
           )}
         </button>
       </div>
-      <pre className="p-3 overflow-x-auto font-mono text-stone-100 leading-relaxed text-[11px]">
+      <pre className="p-3 overflow-x-auto font-mono text-foreground leading-relaxed text-caption">
         {code}
       </pre>
     </div>
@@ -193,7 +194,7 @@ export function RichMarkdown({ content, className = '' }: RichMarkdownProps) {
         elements.push(
           <h4
             key={`block-${blockKey++}`}
-            className="text-xs sm:text-sm font-bold text-stone-950 mt-2 mb-1 pb-0.5 border-b border-amber-200/60"
+            className="text-small font-semibold text-foreground mt-3 mb-1 pb-1 border-b border-border"
           >
             {renderInline(text, `h-${blockKey}`)}
           </h4>
@@ -202,7 +203,7 @@ export function RichMarkdown({ content, className = '' }: RichMarkdownProps) {
         elements.push(
           <h5
             key={`block-${blockKey++}`}
-            className="text-xs font-bold text-amber-950 mt-1.5 mb-0.5"
+            className="text-caption font-semibold text-foreground mt-2 mb-0.5"
           >
             {renderInline(text, `h-${blockKey}`)}
           </h5>
@@ -222,7 +223,7 @@ export function RichMarkdown({ content, className = '' }: RichMarkdownProps) {
       elements.push(
         <div
           key={`block-${blockKey++}`}
-          className="my-1.5 pl-3 py-1 border-l-2 border-amber-500 bg-amber-50/50 rounded-r-lg text-stone-800 italic text-[11px]"
+          className="my-2 pl-3 py-1.5 border-l-2 border-primary bg-primary-subtle/40 rounded-r-md text-foreground/90 italic text-caption"
         >
           {quoteLines.map((ql, idx) => (
             <p key={idx}>{renderInline(ql, `q-${blockKey}-${idx}`)}</p>
@@ -240,10 +241,10 @@ export function RichMarkdown({ content, className = '' }: RichMarkdownProps) {
         i++;
       }
       elements.push(
-        <ul key={`block-${blockKey++}`} className="my-1.5 space-y-1 pl-1">
+        <ul key={`block-${blockKey++}`} className="my-2 space-y-1 pl-1">
           {items.map((item, idx) => (
-            <li key={idx} className="flex items-start gap-2 text-stone-900 leading-relaxed text-xs">
-              <span className="h-1.5 w-1.5 rounded-full bg-amber-600 mt-1.5 shrink-0" />
+            <li key={idx} className="flex items-start gap-2 text-foreground leading-relaxed text-caption sm:text-small">
+              <span className="h-1.5 w-1.5 rounded-full bg-primary mt-1.5 shrink-0" />
               <div className="flex-1">{renderInline(item, `b-${blockKey}-${idx}`)}</div>
             </li>
           ))}
@@ -260,10 +261,10 @@ export function RichMarkdown({ content, className = '' }: RichMarkdownProps) {
         i++;
       }
       elements.push(
-        <ol key={`block-${blockKey++}`} className="my-1.5 space-y-1 pl-1">
+        <ol key={`block-${blockKey++}`} className="my-2 space-y-1 pl-1">
           {items.map((item, idx) => (
-            <li key={idx} className="flex items-start gap-2 text-stone-900 leading-relaxed text-xs">
-              <span className="font-mono text-amber-700 font-bold shrink-0 text-[11px]">
+            <li key={idx} className="flex items-start gap-2 text-foreground leading-relaxed text-caption sm:text-small">
+              <span className="font-mono text-primary font-semibold shrink-0 text-caption tabular-nums">
                 {idx + 1}.
               </span>
               <div className="flex-1">{renderInline(item, `n-${blockKey}-${idx}`)}</div>
@@ -296,11 +297,11 @@ export function RichMarkdown({ content, className = '' }: RichMarkdownProps) {
     }
 
     elements.push(
-      <p key={`block-${blockKey++}`} className="my-1 leading-relaxed text-stone-900 text-xs">
+      <p key={`block-${blockKey++}`} className="my-1.5 leading-relaxed text-foreground text-caption sm:text-small">
         {renderInline(paraLines.join(' '), `p-${blockKey}`)}
       </p>
     );
   }
 
-  return <div className={`space-y-1.5 text-xs text-stone-900 ${className}`}>{elements}</div>;
+  return <div className={`space-y-1 text-caption sm:text-small text-foreground max-w-prose ${className}`}>{elements}</div>;
 }

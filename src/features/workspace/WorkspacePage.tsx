@@ -4,14 +4,9 @@ import {
   FileCheck,
   AlertTriangle,
   Code2,
-  CheckCircle,
-  HelpCircle,
   Clock,
-  ArrowRight,
-  ShieldCheck,
   Compass,
   FileQuestion,
-  Layers,
   Play,
   Pause,
   Square,
@@ -82,14 +77,14 @@ export function WorkspacePage({ onFinishSuccess, onExit }: WorkspacePageProps) {
   if (!session) {
     return (
       <div className="flex-1 flex flex-col items-center justify-center p-8 text-center space-y-4">
-        <AlertTriangle className="h-12 w-12 text-amber-400" />
-        <h3 className="text-lg font-bold text-foreground">
+        <AlertTriangle className="h-12 w-12 text-warning" />
+        <h3 className="text-h3 font-semibold text-foreground">
           No Active Interview Session Found
         </h3>
-        <p className="text-xs text-muted-foreground max-w-sm">
+        <p className="text-caption text-muted-foreground max-w-sm leading-relaxed">
           Please configure a new technical interview or select an existing session from the dashboard.
         </p>
-        <Button onClick={onExit} size="sm">
+        <Button onClick={onExit} variant="primary" size="sm">
           Return to Dashboard
         </Button>
       </div>
@@ -291,7 +286,7 @@ export function WorkspacePage({ onFinishSuccess, onExit }: WorkspacePageProps) {
   };
 
   return (
-    <div className="flex h-[calc(100vh-4rem)] w-full overflow-hidden bg-background">
+    <div className="flex h-[calc(100vh-3.5rem)] w-full overflow-hidden bg-background">
       {/* 1. Left Sidebar: Candidate Profile, Questions, & Progress */}
       <QuestionSidebar
         onEndInterview={handleOpenEndModal}
@@ -299,23 +294,24 @@ export function WorkspacePage({ onFinishSuccess, onExit }: WorkspacePageProps) {
       />
 
       {/* 2. Main Full-Width Workspace Panel */}
-      <div className="flex-1 flex flex-col h-[calc(100vh-4rem)] overflow-hidden bg-background">
+      <div className="flex-1 flex flex-col h-[calc(100vh-3.5rem)] overflow-hidden bg-background">
         {/* Workspace Top Header Bar: Tabs on Left, Session Controls & Timers on Right */}
-        <div className="px-6 py-2.5 border-b border-amber-200/70 bg-white flex flex-wrap items-center justify-between gap-3 shrink-0 shadow-xs">
+        <div className="px-6 py-2.5 border-b border-border bg-surface flex flex-wrap items-center justify-between gap-3 shrink-0">
           {/* Navigation Tabs */}
-          <div className="flex items-center gap-1.5 p-1 rounded-xl bg-amber-50/60 border border-amber-200/60">
+          <div className="flex items-center gap-1.5 p-1 rounded-lg bg-surface-raised border border-border">
             <button
               type="button"
               onClick={() => {
                 setActiveSection('technical');
                 setActiveWorkspaceTab('question');
               }}
-              className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-2 transition-all ${activeSection === 'technical' && activeWorkspaceTab === 'question'
-                ? 'bg-white text-stone-950 shadow-xs border border-amber-300 font-bold'
-                : 'text-stone-600 hover:text-stone-950 hover:bg-white/60'
-                }`}
+              className={`px-3 py-1.5 rounded-md text-xs font-semibold flex items-center gap-2 transition-colors ${
+                activeSection === 'technical' && activeWorkspaceTab === 'question'
+                  ? 'bg-card text-foreground shadow-xs border border-border font-semibold'
+                  : 'text-muted-foreground hover:text-foreground hover:bg-muted'
+              }`}
             >
-              <FileQuestion className="h-3.5 w-3.5 text-amber-600" />
+              <FileQuestion className="h-3.5 w-3.5 text-primary" />
               <span>Technical Questions</span>
             </button>
 
@@ -326,12 +322,13 @@ export function WorkspacePage({ onFinishSuccess, onExit }: WorkspacePageProps) {
                   setActiveSection('dsa');
                   setActiveWorkspaceTab('question');
                 }}
-                className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-2 transition-all ${activeSection === 'dsa' && activeWorkspaceTab === 'question'
-                  ? 'bg-white text-stone-950 shadow-xs border border-amber-300 font-bold'
-                  : 'text-stone-600 hover:text-stone-950 hover:bg-white/60'
-                  }`}
+                className={`px-3 py-1.5 rounded-md text-xs font-semibold flex items-center gap-2 transition-colors ${
+                  activeSection === 'dsa' && activeWorkspaceTab === 'question'
+                    ? 'bg-card text-foreground shadow-xs border border-border font-semibold'
+                    : 'text-muted-foreground hover:text-foreground hover:bg-muted'
+                }`}
               >
-                <Code2 className="h-3.5 w-3.5 text-amber-600" />
+                <Code2 className="h-3.5 w-3.5 text-primary" />
                 <span>DSA Coding ({dsaProblems.length})</span>
               </button>
             )}
@@ -339,15 +336,16 @@ export function WorkspacePage({ onFinishSuccess, onExit }: WorkspacePageProps) {
             <button
               type="button"
               onClick={() => setActiveWorkspaceTab('context')}
-              className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-2 transition-all ${activeWorkspaceTab === 'context'
-                ? 'bg-amber-500/20 text-amber-900 shadow-xs border border-amber-400 font-bold'
-                : 'text-stone-600 hover:text-stone-950 hover:bg-white/60'
-                }`}
+              className={`px-3 py-1.5 rounded-md text-xs font-semibold flex items-center gap-2 transition-colors ${
+                activeWorkspaceTab === 'context'
+                  ? 'bg-primary-subtle text-primary shadow-xs border border-primary/30 font-semibold'
+                  : 'text-muted-foreground hover:text-foreground hover:bg-muted'
+              }`}
             >
-              <Sparkles className="h-3.5 w-3.5 text-amber-600" />
+              <Sparkles className="h-3.5 w-3.5 text-primary" />
               <span>Live Candidate Context</span>
               {contextHistory.length > 0 && (
-                <span className="px-1.5 py-0.2 rounded-full bg-amber-500/20 text-amber-900 text-[10px] font-mono font-bold">
+                <span className="px-1.5 py-0.2 rounded-full bg-primary/20 text-primary text-xs font-mono font-semibold">
                   {contextHistory.length}
                 </span>
               )}
@@ -356,15 +354,16 @@ export function WorkspacePage({ onFinishSuccess, onExit }: WorkspacePageProps) {
             <button
               type="button"
               onClick={() => setActiveWorkspaceTab('copilot')}
-              className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-2 transition-all ${activeWorkspaceTab === 'copilot'
-                ? 'bg-amber-500/15 text-amber-900 shadow-xs border border-amber-400 font-bold'
-                : 'text-stone-600 hover:text-stone-950 hover:bg-white/60'
-                }`}
+              className={`px-3 py-1.5 rounded-md text-xs font-semibold flex items-center gap-2 transition-colors ${
+                activeWorkspaceTab === 'copilot'
+                  ? 'bg-primary-subtle text-primary shadow-xs border border-primary/30 font-semibold'
+                  : 'text-muted-foreground hover:text-foreground hover:bg-muted'
+              }`}
             >
-              <Compass className="h-3.5 w-3.5 text-amber-600" />
+              <Compass className="h-3.5 w-3.5 text-primary" />
               <span>Interviewer Copilot</span>
               {copilotProbes.length > 0 && (
-                <span className="px-1.5 py-0.2 rounded-full bg-amber-500/20 text-amber-900 text-[10px] font-mono font-bold">
+                <span className="px-1.5 py-0.2 rounded-full bg-primary/20 text-primary text-xs font-mono font-semibold">
                   {copilotProbes.length}
                 </span>
               )}
@@ -374,12 +373,12 @@ export function WorkspacePage({ onFinishSuccess, onExit }: WorkspacePageProps) {
           {/* Right Session Controls & Timers */}
           <div className="flex items-center gap-2.5 shrink-0">
             {/* Overall Interview Session Stopwatch */}
-            <div className="h-8 px-3.5 rounded-lg border border-stone-200/80 dark:border-white/20 bg-stone-50/80 dark:bg-zinc-900 inline-flex items-center gap-2 text-xs font-mono text-muted-foreground shadow-2xs whitespace-nowrap shrink-0">
-              <Clock className="h-3.5 w-3.5 text-amber-600 dark:text-white shrink-0" />
-              <span className="font-bold text-foreground">
+            <div className="h-8 px-3.5 rounded-md border border-border bg-surface-raised inline-flex items-center gap-2 text-xs font-mono tabular-nums text-muted-foreground shadow-xs whitespace-nowrap shrink-0">
+              <Clock className="h-3.5 w-3.5 text-primary shrink-0" />
+              <span className="font-semibold text-foreground">
                 {formatDuration(totalElapsedSeconds)}
               </span>
-              <span className="text-muted-foreground text-[11px] whitespace-nowrap">
+              <span className="text-muted-foreground text-xs whitespace-nowrap">
                 / {session.durationMinutes}:00 {session.status === 'draft' ? '(Ready)' : ''}
               </span>
             </div>
@@ -389,42 +388,42 @@ export function WorkspacePage({ onFinishSuccess, onExit }: WorkspacePageProps) {
               variant="outline"
               size="sm"
               onClick={handleExportQuestionsPdf}
-              className="h-8 px-4 min-w-[125px] text-xs font-semibold rounded-lg inline-flex items-center justify-center gap-1.5 border-amber-300/80 bg-white hover:bg-amber-50/70 text-stone-800 dark:border-white/20 dark:bg-zinc-900 dark:text-zinc-200 dark:hover:bg-zinc-800 shadow-xs hover:shadow-sm whitespace-nowrap shrink-0"
+              className="text-xs font-semibold"
               title="Download all questions, expected answers, key check points and solutions as a PDF"
             >
-              <FileDown className="h-3.5 w-3.5 text-amber-600 dark:text-white shrink-0" />
+              <FileDown className="h-3.5 w-3.5 mr-1 text-primary shrink-0" />
               <span>Export Q&A PDF</span>
             </Button>
 
             {/* If interview is in draft (questions generated, waiting to start), show Start Interview button */}
             {session.status === 'draft' ? (
               <Button
-                variant="default"
+                variant="primary"
                 size="sm"
                 onClick={startInterview}
-                className="h-8 px-4 min-w-[125px] text-xs font-bold rounded-lg inline-flex items-center justify-center gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white shadow-md hover:shadow-lg shadow-emerald-600/30 ring-2 ring-emerald-500/40 cursor-pointer whitespace-nowrap shrink-0"
+                className="text-xs font-semibold"
                 title="Start the interview and begin timer"
               >
-                <Play className="h-3.5 w-3.5 fill-current shrink-0" />
+                <Play className="h-3.5 w-3.5 fill-current mr-1 shrink-0" />
                 <span>Start Interview</span>
               </Button>
             ) : (
               <>
                 {/* Pause / Resume Button */}
                 <Button
-                  variant={isPaused ? 'default' : 'outline'}
+                  variant={isPaused ? 'primary' : 'outline'}
                   size="sm"
                   onClick={togglePauseTimer}
-                  className="h-8 px-4 min-w-[125px] text-xs font-semibold rounded-lg inline-flex items-center justify-center gap-1.5 border-amber-300/80 bg-white hover:bg-amber-50/70 text-stone-800 dark:border-white/20 dark:bg-zinc-900 dark:text-zinc-200 dark:hover:bg-zinc-800 shadow-xs hover:shadow-sm whitespace-nowrap shrink-0"
+                  className="text-xs font-semibold"
                 >
                   {isPaused ? (
                     <>
-                      <Play className="h-3.5 w-3.5 fill-current shrink-0" />
+                      <Play className="h-3.5 w-3.5 fill-current mr-1 shrink-0" />
                       <span>Resume</span>
                     </>
                   ) : (
                     <>
-                      <Pause className="h-3.5 w-3.5 text-amber-600 dark:text-white shrink-0" />
+                      <Pause className="h-3.5 w-3.5 mr-1 text-primary shrink-0" />
                       <span>Pause</span>
                     </>
                   )}
@@ -435,21 +434,21 @@ export function WorkspacePage({ onFinishSuccess, onExit }: WorkspacePageProps) {
                   variant="outline"
                   size="sm"
                   onClick={handleOpenEndModal}
-                  className="h-8 px-4 min-w-[125px] text-xs font-bold rounded-lg inline-flex items-center justify-center gap-1.5 border-rose-300/90 bg-rose-50/60 hover:bg-rose-100 text-rose-800 hover:text-rose-950 transition-all shadow-xs hover:shadow-sm dark:border-rose-500/30 dark:bg-rose-950/40 dark:text-rose-300 whitespace-nowrap shrink-0"
+                  className="text-xs font-semibold text-danger border-danger-border hover:bg-danger-subtle"
                   title="Stop or end this ongoing interview in between"
                 >
-                  <Square className="h-3 w-3 text-rose-600 fill-rose-600 dark:text-rose-400 dark:fill-rose-400 shrink-0" />
+                  <Square className="h-3 w-3 mr-1 fill-danger text-danger shrink-0" />
                   <span>End Interview</span>
                 </Button>
 
                 {/* Conclude & Generate Final Report */}
                 <Button
-                  variant="success"
+                  variant="primary"
                   size="sm"
                   onClick={() => setIsFinishConfirmOpen(true)}
-                  className="h-8 px-4 min-w-[125px] text-xs font-bold rounded-lg inline-flex items-center justify-center gap-1.5 shadow-md hover:shadow-lg shadow-emerald-600/20 whitespace-nowrap shrink-0"
+                  className="text-xs font-semibold"
                 >
-                  <FileCheck className="h-3.5 w-3.5 shrink-0" />
+                  <FileCheck className="h-3.5 w-3.5 mr-1 shrink-0" />
                   <span>Finish Interview</span>
                 </Button>
               </>
@@ -459,19 +458,20 @@ export function WorkspacePage({ onFinishSuccess, onExit }: WorkspacePageProps) {
 
         {/* Pre-Interview Readiness Banner */}
         {session.status === 'draft' && (
-          <div className="bg-amber-500/10 border-b border-amber-300/60 dark:bg-zinc-900 dark:border-white/20 px-6 py-2.5 flex flex-wrap items-center justify-between gap-3 text-xs shrink-0 shadow-2xs">
+          <div className="bg-primary-subtle border-b border-primary/20 px-6 py-2.5 flex flex-wrap items-center justify-between gap-3 text-xs shrink-0">
             <div className="flex items-center gap-2 text-foreground font-medium">
-              <div className="h-2 w-2 rounded-full bg-amber-500 dark:bg-white animate-pulse" />
+              <div className="h-2 w-2 rounded-full bg-primary" />
               <span>
                 Questions generated and ready for review! The interview timer is currently stopped at 00:00. When you are ready to begin with the candidate, click <strong>Start Interview</strong>.
               </span>
             </div>
             <Button
+              variant="primary"
               size="sm"
               onClick={startInterview}
-              className="h-8 px-4 text-xs font-bold inline-flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white shadow-xs hover:shadow-sm cursor-pointer rounded-lg"
+              className="text-xs font-semibold"
             >
-              <Play className="h-3 w-3 fill-current" />
+              <Play className="h-3 w-3 fill-current mr-1" />
               <span>Start Interview</span>
             </Button>
           </div>
@@ -483,12 +483,12 @@ export function WorkspacePage({ onFinishSuccess, onExit }: WorkspacePageProps) {
             activeSection === 'dsa' ? <DsaMainPanel /> : <QuestionMainPanel />
           )}
           {activeWorkspaceTab === 'context' && (
-            <div className="flex-1 overflow-y-auto px-[10%] pt-[80px] pb-16">
+            <div className="flex-1 overflow-y-auto p-6 max-w-5xl mx-auto w-full">
               <LiveContextPanel />
             </div>
           )}
           {activeWorkspaceTab === 'copilot' && (
-            <div className="flex-1 overflow-y-auto px-[10%] pt-[80px] pb-16">
+            <div className="flex-1 overflow-y-auto p-6 max-w-5xl mx-auto w-full">
               <CopilotProbesWidget />
             </div>
           )}
@@ -501,223 +501,184 @@ export function WorkspacePage({ onFinishSuccess, onExit }: WorkspacePageProps) {
         onClose={() => !isGeneratingReport && setIsFinishConfirmOpen(false)}
         title={
           <div className="flex items-center gap-2">
-            <FileCheck className="h-5 w-5 text-emerald-400" />
-            <span>Finish Interview & Generate Evaluation Report</span>
+            <FileCheck className="h-5 w-5 text-success" />
+            <span className="font-semibold text-foreground">Finish Interview & Generate Evaluation Report</span>
           </div>
         }
       >
         <div className="space-y-5">
-          <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
+          <p className="text-body text-muted-foreground leading-relaxed">
             You are about to conclude the technical interview session for{' '}
             <strong className="text-foreground">{session.candidateName}</strong> ({session.jobPosition}).
           </p>
 
           {/* Session Summary Stats Box */}
-          <div className="p-4 rounded-xl border border-border/80 bg-secondary/30 space-y-2.5 text-xs">
-            <span className="font-bold text-foreground uppercase tracking-wider text-[11px] block">
+          <div className="p-4 rounded-lg border border-border bg-surface-raised space-y-2.5 text-xs">
+            <span className="font-semibold text-foreground uppercase tracking-wider text-xs block">
               Interview Evaluation Summary:
             </span>
             <div className="grid grid-cols-2 gap-3">
-              <div className="p-2.5 rounded-lg bg-card border border-border/50">
-                <span className="text-muted-foreground block text-[11px]">Answered Questions</span>
-                <span className="text-sm font-bold text-foreground font-mono">
+              <div className="p-2.5 rounded-md bg-card border border-border">
+                <span className="text-muted-foreground block text-xs">Answered Questions</span>
+                <span className="text-sm font-bold text-foreground font-mono tabular-nums">
                   {evaluatedCount} / {questions.length}
                 </span>
               </div>
-              <div className="p-2.5 rounded-lg bg-card border border-border/50">
-                <span className="text-muted-foreground block text-[11px]">DSA Problems Reviewed</span>
-                <span className="text-sm font-bold text-foreground font-mono">
+              <div className="p-2.5 rounded-md bg-card border border-border">
+                <span className="text-muted-foreground block text-xs">DSA Problems Reviewed</span>
+                <span className="text-sm font-bold text-foreground font-mono tabular-nums">
                   {dsaReviewedCount} / {dsaProblems.length}
                 </span>
               </div>
-              <div className="p-2.5 rounded-lg bg-card border border-border/50">
-                <span className="text-muted-foreground block text-[11px]">Skipped Questions</span>
-                <span className="text-sm font-bold text-amber-400 font-mono">
+              <div className="p-2.5 rounded-md bg-card border border-border">
+                <span className="text-muted-foreground block text-xs">Skipped Questions</span>
+                <span className="text-sm font-bold text-warning font-mono tabular-nums">
                   {skippedCount} (excluded)
                 </span>
               </div>
-              <div className="p-2.5 rounded-lg bg-card border border-border/50">
-                <span className="text-muted-foreground block text-[11px]">Total Elapsed Duration</span>
-                <span className="text-sm font-bold text-cyan-300 font-mono">
+              <div className="p-2.5 rounded-md bg-card border border-border">
+                <span className="text-muted-foreground block text-xs">Total Elapsed Duration</span>
+                <span className="text-sm font-bold text-primary font-mono tabular-nums">
                   {Math.round(totalElapsedSeconds / 60)} mins
                 </span>
               </div>
             </div>
 
             {pendingCount > 0 && (
-              <p className="text-[11px] text-amber-400/90 pt-1 flex items-center gap-1.5">
+              <p className="text-xs text-warning pt-1 flex items-center gap-1.5">
                 <AlertTriangle className="h-3.5 w-3.5 shrink-0" />
                 <span>
-                  {pendingCount} question{pendingCount > 1 ? 's are' : ' is'} currently marked pending.
+                  Notice: <strong>{pendingCount} questions</strong> are still pending an evaluation score.
                 </span>
               </p>
             )}
           </div>
 
-          {/* Error Message if report generation failed */}
-          {reportGenError && (
-            <div className="p-3 rounded-lg border border-rose-500/30 bg-rose-500/10 text-rose-300 text-xs">
-              {reportGenError}
-            </div>
-          )}
-
-          {/* Generating Loading State */}
-          {isGeneratingReport ? (
-            <div className="p-6 text-center space-y-3 bg-secondary/20 rounded-xl border border-cyan-500/30">
-              <div className="inline-block h-8 w-8 rounded-full border-2 border-cyan-400 border-t-transparent animate-spin" />
-              <p className="text-xs text-cyan-300 font-mono font-medium animate-pulse">
-                {reportGenStep}
-              </p>
-              <p className="text-[11px] text-muted-foreground">
-                Analyzing technical competencies across Java, Kafka, Spring, MySQL, System Design & DSA...
-              </p>
-            </div>
-          ) : (
-            <div className="flex items-center justify-end gap-3 pt-3 border-t border-border/60">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setIsFinishConfirmOpen(false)}
-                className="h-8 px-4 text-xs font-semibold rounded-lg"
-              >
-                Continue Interview
-              </Button>
-              <Button
-                variant="success"
-                size="sm"
-                onClick={() => handleConfirmFinish(false)}
-                className="h-8 px-4 text-xs font-bold rounded-lg inline-flex items-center gap-2 shadow-lg shadow-emerald-600/20"
-              >
-                <Sparkles className="h-4 w-4" />
-                <span>Confirm & Generate Final Report</span>
-              </Button>
-            </div>
-          )}
-        </div>
-      </Modal>
-
-      {/* End Ongoing Interview Modal (Stop in between) */}
-      <Modal
-        isOpen={isEndModalOpen}
-        onClose={() => !isGeneratingReport && setIsEndModalOpen(false)}
-        title={
-          <div className="flex items-center gap-2 text-rose-700">
-            <Square className="h-4 w-4 fill-rose-600 text-rose-600" />
-            <span>End Ongoing Interview Session</span>
-          </div>
-        }
-      >
-        <div className="space-y-5">
-          <div className="p-3.5 rounded-xl border border-rose-200/90 bg-rose-50/60 space-y-1">
-            <div className="flex items-center gap-2">
-              <span className="text-xs font-bold uppercase tracking-wider text-rose-900">
-                Stop Interview in Progress
-              </span>
-            </div>
-            <p className="text-xs text-stone-900 leading-relaxed">
-              You are stopping the interview session with{' '}
-              <strong className="text-stone-950 font-bold">{session.candidateName}</strong> ({session.jobPosition}) before completing all scheduled questions.
-            </p>
-          </div>
-
-          {/* Quick Metrics */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 text-xs">
-            <div className="p-2.5 rounded-lg bg-stone-50 border border-stone-200">
-              <span className="text-[11px] text-muted-foreground block">Answered</span>
-              <span className="text-sm font-bold text-stone-900 font-mono">
-                {evaluatedCount} / {questions.length}
-              </span>
-            </div>
-            <div className="p-2.5 rounded-lg bg-stone-50 border border-stone-200">
-              <span className="text-[11px] text-muted-foreground block">Remaining</span>
-              <span className="text-sm font-bold text-amber-700 font-mono">
-                {pendingCount}
-              </span>
-            </div>
-            <div className="p-2.5 rounded-lg bg-stone-50 border border-stone-200">
-              <span className="text-[11px] text-muted-foreground block">DSA Reviewed</span>
-              <span className="text-sm font-bold text-stone-900 font-mono">
-                {dsaReviewedCount} / {dsaProblems.length}
-              </span>
-            </div>
-            <div className="p-2.5 rounded-lg bg-stone-50 border border-stone-200">
-              <span className="text-[11px] text-muted-foreground block">Elapsed Time</span>
-              <span className="text-sm font-bold text-stone-900 font-mono">
-                {formatDuration(totalElapsedSeconds)}
-              </span>
-            </div>
-          </div>
-
-          {/* Option for unasked questions */}
-          {pendingCount > 0 && evaluatedCount > 0 && (
-            <div className="p-3 rounded-lg bg-amber-50/70 border border-amber-200/80 flex items-start gap-2.5">
+          {/* Option: Exclude Unasked Questions */}
+          {pendingCount > 0 && (
+            <label className="flex items-start gap-3 p-3 rounded-lg border border-border bg-surface cursor-pointer select-none">
               <input
                 type="checkbox"
-                id="excludePendingCheckbox"
                 checked={excludeUnaskedQuestions}
                 onChange={(e) => setExcludeUnaskedQuestions(e.target.checked)}
-                className="mt-0.5 rounded border-amber-300 text-amber-600 focus:ring-amber-500 cursor-pointer"
+                className="mt-0.5 h-4 w-4 rounded border-border text-primary focus:ring-ring"
               />
-              <label htmlFor="excludePendingCheckbox" className="text-xs text-stone-900 leading-normal cursor-pointer select-none">
-                <span className="font-bold text-stone-950 block">Exclude {pendingCount} unasked question{pendingCount > 1 ? 's' : ''} from score calculation</span>
-                Score candidate fairly based only on questions evaluated so far, rather than penalizing unreached questions with 0 points.
-              </label>
-            </div>
+              <div className="space-y-0.5">
+                <span className="text-xs font-semibold text-foreground block">
+                  Conclude Interview Early (Exclude unasked questions from score denominator)
+                </span>
+                <p className="text-caption text-muted-foreground leading-normal">
+                  Recommended if the interview ended early. Candidate will only be scored on questions they actually answered, rather than receiving 0 for unreached questions.
+                </p>
+              </div>
+            </label>
           )}
 
-          {/* Error Message if report generation failed */}
-          {reportGenError && (
-            <div className="p-3 rounded-lg border border-rose-500/30 bg-rose-500/10 text-rose-700 text-xs">
-              {reportGenError}
-            </div>
-          )}
-
-          {/* Report Generating Spinner */}
+          {/* Report Generation Progress Overlay */}
           {isGeneratingReport ? (
-            <div className="p-6 text-center space-y-3 bg-amber-50/40 rounded-xl border border-amber-300/60">
-              <div className="inline-block h-8 w-8 rounded-full border-2 border-amber-600 border-t-transparent animate-spin" />
-              <p className="text-xs text-amber-900 font-mono font-medium animate-pulse">
+            <div className="p-6 text-center space-y-3 bg-surface-raised rounded-lg border border-border">
+              <div className="inline-block h-8 w-8 rounded-full border-2 border-primary border-t-transparent animate-spin" />
+              <p className="text-xs text-foreground font-mono font-medium">
                 {reportGenStep}
               </p>
-              <p className="text-[11px] text-muted-foreground">
+              <p className="text-caption text-muted-foreground">
                 Analyzing completed technical questions, notes & DSA assessments...
               </p>
             </div>
           ) : (
-            <div className="space-y-2.5 pt-2 border-t border-stone-200/80">
-              <span className="text-[11px] font-bold uppercase tracking-wider text-stone-500 block">
+            <>
+              {reportGenError && (
+                <div className="p-3 rounded-lg border border-danger-border bg-danger-subtle text-danger text-xs">
+                  {reportGenError}
+                </div>
+              )}
+
+              <div className="flex items-center justify-end gap-2 pt-2 border-t border-border">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setIsFinishConfirmOpen(false)}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  variant="primary"
+                  size="sm"
+                  onClick={() => handleConfirmFinish(excludeUnaskedQuestions)}
+                  className="flex items-center gap-1.5"
+                >
+                  <Sparkles className="h-3.5 w-3.5" />
+                  <span>Synthesize & View Report</span>
+                </Button>
+              </div>
+            </>
+          )}
+        </div>
+      </Modal>
+
+      {/* End / Stop Interview Modal (Interviewer can pause, abort, or generate report early) */}
+      <Modal
+        isOpen={isEndModalOpen}
+        onClose={() => !isGeneratingReport && setIsEndModalOpen(false)}
+        title={
+          <div className="flex items-center gap-2">
+            <Square className="h-4 w-4 text-danger fill-danger" />
+            <span className="font-semibold text-foreground">Stop / Conclude Ongoing Interview</span>
+          </div>
+        }
+      >
+        <div className="space-y-4">
+          <p className="text-body text-muted-foreground leading-relaxed">
+            The interview timer is currently paused. You have conducted{' '}
+            <strong className="text-foreground">{formatDuration(totalElapsedSeconds)}</strong> with{' '}
+            <strong className="text-foreground">{session.candidateName}</strong> ({evaluatedCount} of {questions.length} questions evaluated).
+          </p>
+
+          {isGeneratingReport ? (
+            <div className="p-6 text-center space-y-3 bg-surface-raised rounded-lg border border-border">
+              <div className="inline-block h-8 w-8 rounded-full border-2 border-primary border-t-transparent animate-spin" />
+              <p className="text-xs text-foreground font-mono font-medium">
+                {reportGenStep}
+              </p>
+              <p className="text-caption text-muted-foreground">
+                Analyzing completed technical questions, notes & DSA assessments...
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-2.5 pt-2 border-t border-border">
+              <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground block">
                 Choose how to stop this interview:
               </span>
 
               {/* Action 1: End & Generate Report */}
-              <div className="p-3 rounded-xl border border-emerald-200 bg-emerald-50/50 hover:bg-emerald-50 transition-colors flex items-center justify-between gap-3">
+              <div className="p-3 rounded-lg border border-border bg-card hover:bg-surface-raised transition-colors flex items-center justify-between gap-3">
                 <div className="space-y-0.5 min-w-0">
-                  <div className="text-xs font-bold text-emerald-950 flex items-center gap-1.5">
-                    <Sparkles className="h-3.5 w-3.5 text-emerald-600 shrink-0" />
+                  <div className="text-xs font-semibold text-foreground flex items-center gap-1.5">
+                    <Sparkles className="h-3.5 w-3.5 text-primary shrink-0" />
                     <span>End & Generate Evaluation Report</span>
                   </div>
-                  <p className="text-[11px] text-stone-600 leading-tight">
+                  <p className="text-caption text-muted-foreground leading-tight">
                     Conclude now and synthesize an evaluation report based on evaluated questions.
                   </p>
                 </div>
                 <Button
-                  variant="success"
+                  variant="primary"
                   size="sm"
                   onClick={() => handleConfirmFinish(excludeUnaskedQuestions)}
-                  className="h-8 px-4 min-w-[120px] text-xs font-bold rounded-lg inline-flex items-center justify-center shrink-0"
+                  className="shrink-0"
                 >
                   Generate Report
                 </Button>
               </div>
 
               {/* Action 2: Pause & Save for Later */}
-              <div className="p-3 rounded-xl border border-amber-200 bg-amber-50/50 hover:bg-amber-50 transition-colors flex items-center justify-between gap-3">
+              <div className="p-3 rounded-lg border border-border bg-card hover:bg-surface-raised transition-colors flex items-center justify-between gap-3">
                 <div className="space-y-0.5 min-w-0">
-                  <div className="text-xs font-bold text-amber-950 flex items-center gap-1.5">
-                    <Pause className="h-3.5 w-3.5 text-amber-600 shrink-0" />
+                  <div className="text-xs font-semibold text-foreground flex items-center gap-1.5">
+                    <Pause className="h-3.5 w-3.5 text-primary shrink-0" />
                     <span>Pause & Save for Later</span>
                   </div>
-                  <p className="text-[11px] text-stone-600 leading-tight">
+                  <p className="text-caption text-muted-foreground leading-tight">
                     Save current responses and timer. You can resume this session anytime from Dashboard.
                   </p>
                 </div>
@@ -725,20 +686,20 @@ export function WorkspacePage({ onFinishSuccess, onExit }: WorkspacePageProps) {
                   variant="outline"
                   size="sm"
                   onClick={handlePauseAndExit}
-                  className="h-8 px-4 min-w-[120px] text-xs font-semibold rounded-lg inline-flex items-center justify-center shrink-0 border-amber-300 text-stone-800 bg-white hover:bg-amber-50"
+                  className="shrink-0"
                 >
                   Save & Exit
                 </Button>
               </div>
 
               {/* Action 3: Discard / Mark Ended Early */}
-              <div className="p-3 rounded-xl border border-rose-200 bg-rose-50/50 hover:bg-rose-50 transition-colors flex items-center justify-between gap-3">
+              <div className="p-3 rounded-lg border border-danger-border bg-danger-subtle hover:bg-danger-subtle/80 transition-colors flex items-center justify-between gap-3">
                 <div className="space-y-0.5 min-w-0">
-                  <div className="text-xs font-bold text-rose-950 flex items-center gap-1.5">
-                    <Trash2 className="h-3.5 w-3.5 text-rose-600 shrink-0" />
+                  <div className="text-xs font-semibold text-danger flex items-center gap-1.5">
+                    <Trash2 className="h-3.5 w-3.5 text-danger shrink-0" />
                     <span>Discard / Abort Interview</span>
                   </div>
-                  <p className="text-[11px] text-stone-600 leading-tight">
+                  <p className="text-caption text-danger/80 leading-tight">
                     Stop this session without a report. Marked as ended early in history.
                   </p>
                 </div>
@@ -746,7 +707,7 @@ export function WorkspacePage({ onFinishSuccess, onExit }: WorkspacePageProps) {
                   variant="outline"
                   size="sm"
                   onClick={handleAbortSession}
-                  className="h-8 px-4 min-w-[120px] text-xs font-semibold rounded-lg inline-flex items-center justify-center shrink-0 border-rose-300 text-rose-700 bg-white hover:bg-rose-100 hover:text-rose-900"
+                  className="shrink-0 border-danger-border text-danger hover:bg-danger/10"
                 >
                   Abort Session
                 </Button>
@@ -770,4 +731,3 @@ export function WorkspacePage({ onFinishSuccess, onExit }: WorkspacePageProps) {
     </div>
   );
 }
-

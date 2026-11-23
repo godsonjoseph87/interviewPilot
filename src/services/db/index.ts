@@ -81,7 +81,7 @@ export const DEFAULT_SETTINGS: AppSettings = {
     'real_world_problems',
     'dsa',
   ],
-  theme: 'light',
+  theme: 'dark',
 };
 
 // Database helper functions
@@ -92,9 +92,9 @@ export async function getSettings(): Promise<AppSettings> {
       await db.settings.put(DEFAULT_SETTINGS);
       return DEFAULT_SETTINGS;
     }
-    // Default to the elegant white theme with golden accents
-    if (!stored.theme || stored.theme === 'dark') {
-      stored.theme = 'light';
+    // Default to the showcase Midnight Indigo dark theme
+    if (!stored.theme) {
+      stored.theme = 'dark';
     }
     // Automatically migrate discontinued or overloaded models to ultra-fast, reliable gemini-3.5-flash-lite
     if (

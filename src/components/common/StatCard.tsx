@@ -23,24 +23,28 @@ export function StatCard({
   className,
 }: StatCardProps) {
   return (
-    <Card className={cn('relative overflow-hidden group hover:border-amber-400/70 bg-white border-amber-200/60 shadow-sm hover:shadow-md transition-all duration-300', className)}>
-      <div className="absolute top-0 right-0 w-28 h-28 bg-gradient-to-bl from-amber-400/10 to-transparent rounded-full blur-2xl pointer-events-none group-hover:from-amber-400/20 transition-colors" />
-      <CardContent className="p-5 flex items-center justify-between">
+    <Card
+      className={cn(
+        'relative overflow-hidden group transition-all duration-150 hover:border-border-strong hover:bg-surface-raised',
+        className
+      )}
+    >
+      <CardContent className="p-5 flex items-center justify-between gap-4">
         <div className="space-y-1">
-          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+          <p className="text-caption font-medium uppercase tracking-wider text-muted-foreground">
             {title}
           </p>
           <div className="flex items-baseline gap-2">
-            <h4 className="text-2xl font-black tracking-tight text-foreground">
+            <h4 className="text-2xl sm:text-3xl font-semibold tracking-tight text-foreground font-mono tabular-nums">
               {value}
             </h4>
             {trend && (
               <span
                 className={cn(
-                  'text-xs font-semibold px-1.5 py-0.5 rounded',
+                  'text-caption font-medium px-1.5 py-0.5 rounded font-mono tabular-nums',
                   trend.isPositive
-                    ? 'text-emerald-700 bg-emerald-500/15'
-                    : 'text-rose-700 bg-rose-500/15'
+                    ? 'text-success-foreground bg-success-subtle border border-success-border'
+                    : 'text-danger-foreground bg-danger-subtle border border-danger-border'
                 )}
               >
                 {trend.value}
@@ -48,14 +52,13 @@ export function StatCard({
             )}
           </div>
           {subtitle && (
-            <p className="text-xs text-muted-foreground/80">{subtitle}</p>
+            <p className="text-caption text-muted-foreground">{subtitle}</p>
           )}
         </div>
-        <div className="p-3 rounded-xl bg-gradient-to-br from-amber-500/15 to-yellow-500/20 text-amber-800 border border-amber-300/50 group-hover:scale-105 group-hover:shadow-sm transition-all">
+        <div className="h-9 w-9 rounded-lg bg-primary-subtle border border-primary-border text-primary flex items-center justify-center shrink-0 shadow-2xs transition-colors group-hover:bg-primary group-hover:text-primary-foreground">
           {icon}
         </div>
       </CardContent>
     </Card>
   );
 }
-

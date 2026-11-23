@@ -71,52 +71,61 @@ export function App() {
   };
 
   return (
-    <div className="min-h-screen bg-background text-foreground flex flex-col font-sans">
-      <Navbar currentTab={currentTab} setCurrentTab={(tab) => setCurrentTab(tab as any)} />
+    <div className="min-h-screen bg-background text-foreground flex flex-col font-sans relative">
+      {/* Ambient background atmosphere */}
+      <div className="ambient-bg" aria-hidden="true">
+        <div className="ambient-glow-indigo" />
+        <div className="ambient-glow-teal" />
+        <div className="ambient-grid" />
+      </div>
 
-      <main className="flex-1 flex flex-col">
-        {currentTab === 'dashboard' && (
-          <DashboardPage
-            onNavigate={(tab, id) => {
-              if (tab === 'report') {
-                setSelectedReportId(id);
-              }
-              setCurrentTab(tab as any);
-            }}
-          />
-        )}
+      <div className="relative z-10 flex flex-col flex-1">
+        <Navbar currentTab={currentTab} setCurrentTab={(tab) => setCurrentTab(tab as any)} />
 
-        {currentTab === 'configure' && (
-          <NewInterviewPage
-            onStartSession={handleStartSession}
-            onCancel={() => setCurrentTab('dashboard')}
-          />
-        )}
+        <main className="flex-1 flex flex-col">
+          {currentTab === 'dashboard' && (
+            <DashboardPage
+              onNavigate={(tab, id) => {
+                if (tab === 'report') {
+                  setSelectedReportId(id);
+                }
+                setCurrentTab(tab as any);
+              }}
+            />
+          )}
 
-        {currentTab === 'workspace' && (
-          <WorkspacePage
-            onFinishSuccess={handleFinishSuccess}
-            onExit={() => setCurrentTab('dashboard')}
-          />
-        )}
+          {currentTab === 'configure' && (
+            <NewInterviewPage
+              onStartSession={handleStartSession}
+              onCancel={() => setCurrentTab('dashboard')}
+            />
+          )}
 
-        {currentTab === 'report' && (
-          <ReportPage
-            reportId={selectedReportId}
-            onReturnToDashboard={() => setCurrentTab('dashboard')}
-          />
-        )}
+          {currentTab === 'workspace' && (
+            <WorkspacePage
+              onFinishSuccess={handleFinishSuccess}
+              onExit={() => setCurrentTab('dashboard')}
+            />
+          )}
 
-        {currentTab === 'history' && (
-          <HistoryPage
-            onOpenReport={handleOpenReportFromHistory}
-            onResumeSession={handleResumeFromHistory}
-            onCreateNew={() => setCurrentTab('configure')}
-          />
-        )}
+          {currentTab === 'report' && (
+            <ReportPage
+              reportId={selectedReportId}
+              onReturnToDashboard={() => setCurrentTab('dashboard')}
+            />
+          )}
 
-        {currentTab === 'settings' && <SettingsPage />}
-      </main>
+          {currentTab === 'history' && (
+            <HistoryPage
+              onOpenReport={handleOpenReportFromHistory}
+              onResumeSession={handleResumeFromHistory}
+              onCreateNew={() => setCurrentTab('configure')}
+            />
+          )}
+
+          {currentTab === 'settings' && <SettingsPage />}
+        </main>
+      </div>
     </div>
   );
 }

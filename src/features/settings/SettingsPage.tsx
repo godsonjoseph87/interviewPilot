@@ -1,6 +1,5 @@
 import React, { useState, useRef } from 'react';
 import {
-  Settings as SettingsIcon,
   Cpu,
   Sliders,
   Sun,
@@ -16,6 +15,7 @@ import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/Card';
 import { Modal } from '@/components/ui/Modal';
+import { PageHeader } from '@/components/ui/PageHeader';
 import { useSettingsStore } from '@/store/useSettingsStore';
 import {
   AVAILABLE_MODELS,
@@ -132,36 +132,27 @@ export function SettingsPage() {
   };
 
   return (
-    <div className="w-full px-[10%] pt-[80px] pb-16 space-y-6 animate-fade-in">
+    <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6 animate-fade-in max-w-5xl">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border/80 pb-6">
-        <div>
-          <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-amber-500/10 border border-amber-300/50 text-amber-800 text-xs font-semibold mb-2">
-            <SettingsIcon className="h-3.5 w-3.5 text-amber-600" />
-            <span>Preferences & Integration</span>
-          </div>
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground">
-            Application Settings
-          </h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            Configure model routing, default interview parameters, UI themes, and local storage backups.
-          </p>
-        </div>
+      <PageHeader
+        title="Application Settings"
+        description="Configure model routing, default interview parameters, UI themes, and local storage backups."
+        actions={
+          saveSuccessMsg ? (
+            <div className="flex items-center gap-2 px-3 py-1.5 rounded-md bg-success-subtle border border-success-border text-success text-xs font-semibold animate-fade-in">
+              <CheckCircle2 className="h-4 w-4" />
+              <span>{saveSuccessMsg}</span>
+            </div>
+          ) : undefined
+        }
+      />
 
-        {saveSuccessMsg && (
-          <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 text-xs font-semibold animate-fade-in">
-            <CheckCircle2 className="h-4 w-4" />
-            <span>{saveSuccessMsg}</span>
-          </div>
-        )}
-      </div>
-
-      <form onSubmit={handleSaveAll} className="space-y-8">
+      <form onSubmit={handleSaveAll} className="space-y-6">
         {/* Section 1: Gemini Model Selection */}
-        <Card className="border-amber-200/70 bg-white shadow-sm hover:shadow-md transition-shadow duration-200">
-          <CardHeader className="pb-4 border-b border-border/50">
+        <Card>
+          <CardHeader className="pb-4 border-b border-border">
             <div className="flex items-center gap-2">
-              <Cpu className="h-4 w-4 text-amber-600" />
+              <Cpu className="h-4 w-4 text-primary" />
               <CardTitle className="text-base font-semibold">
                 Gemini Model Selection
               </CardTitle>
@@ -182,19 +173,25 @@ export function SettingsPage() {
                       setSelectedModel(m.id);
                       setCustomModelId('');
                     }}
-                    className={`p-3.5 rounded-xl border cursor-pointer transition-all ${
+                    className={`p-3.5 rounded-lg border cursor-pointer transition-colors ${
                       isSelected
-                        ? 'border-amber-400 bg-amber-50/70 shadow-xs'
-                        : 'border-border/70 hover:border-amber-200 bg-secondary/30'
+                        ? 'border-primary bg-primary-subtle text-foreground shadow-xs'
+                        : 'border-border hover:border-primary/40 bg-surface-raised text-muted-foreground'
                     }`}
                   >
                     <div className="flex items-center justify-between">
-                      <span className="text-xs font-bold text-foreground">{m.name}</span>
-                      <span className="text-[10px] font-mono font-semibold px-2 py-0.5 rounded bg-amber-500/15 text-amber-900 border border-amber-300/40">
+                      <span className="text-xs font-semibold text-foreground">{m.name}</span>
+                      <span
+                        className={`text-caption font-mono font-semibold px-2 py-0.5 rounded-full ${
+                          isSelected
+                            ? 'bg-primary text-primary-foreground'
+                            : 'bg-surface text-muted-foreground border border-border'
+                        }`}
+                      >
                         {m.badge}
                       </span>
                     </div>
-                    <span className="text-[11px] font-mono text-muted-foreground block mt-1">
+                    <span className="text-caption font-mono text-muted-foreground block mt-1">
                       {m.id}
                     </span>
                   </div>
@@ -202,8 +199,8 @@ export function SettingsPage() {
               })}
             </div>
 
-            <div>
-              <label className="block text-xs font-semibold text-foreground mb-1">
+            <div className="space-y-1.5 pt-2">
+              <label className="block text-xs font-semibold text-foreground">
                 Custom Model Override (Optional)
               </label>
               <Input
@@ -212,18 +209,18 @@ export function SettingsPage() {
                 onChange={(e) => setCustomModelId(e.target.value)}
                 className="text-xs font-mono"
               />
-              <p className="text-[10px] text-muted-foreground mt-1">
+              <p className="text-caption text-muted-foreground">
                 Leave empty to use the selected standard model above.
               </p>
             </div>
           </CardContent>
         </Card>
 
-        {/* Section 3: Interview Defaults */}
-        <Card className="border-amber-200/70 bg-white shadow-sm hover:shadow-md transition-shadow duration-200">
-          <CardHeader className="pb-4 border-b border-border/50">
+        {/* Section 2: Interview Defaults */}
+        <Card>
+          <CardHeader className="pb-4 border-b border-border">
             <div className="flex items-center gap-2">
-              <Sliders className="h-4 w-4 text-amber-600" />
+              <Sliders className="h-4 w-4 text-primary" />
               <CardTitle className="text-base font-semibold">
                 Default Interview Parameters
               </CardTitle>
@@ -242,7 +239,7 @@ export function SettingsPage() {
                 <select
                   value={defaultDuration}
                   onChange={(e) => setDefaultDuration(Number(e.target.value))}
-                  className="flex h-10 w-full rounded-lg border border-input bg-card px-3 py-2 text-xs font-medium focus-visible:outline-none"
+                  className="flex h-9 w-full rounded-md border border-input bg-card px-3 py-1.5 text-xs text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
                 >
                   {DURATION_OPTIONS.map((d) => (
                     <option key={d.value} value={d.value}>
@@ -259,7 +256,7 @@ export function SettingsPage() {
                 <select
                   value={defaultDifficulty}
                   onChange={(e) => setDefaultDifficulty(e.target.value as Difficulty)}
-                  className="flex h-10 w-full rounded-lg border border-input bg-card px-3 py-2 text-xs font-medium focus-visible:outline-none"
+                  className="flex h-9 w-full rounded-md border border-input bg-card px-3 py-1.5 text-xs text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
                 >
                   {DIFFICULTY_LEVELS.map((dl) => (
                     <option key={dl.id} value={dl.id}>
@@ -271,12 +268,10 @@ export function SettingsPage() {
             </div>
 
             {/* Default Topics Selection */}
-            <div>
-              <div className="flex items-center justify-between mb-2">
-                <label className="text-xs font-semibold text-foreground">
-                  Default Technical Topics ({defaultTopics.length} selected)
-                </label>
-              </div>
+            <div className="space-y-2">
+              <label className="text-xs font-semibold text-foreground block">
+                Default Technical Topics ({defaultTopics.length} selected)
+              </label>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
                 {TECHNICAL_TOPICS.map((topic) => {
                   const isChecked = defaultTopics.includes(topic.id);
@@ -286,17 +281,17 @@ export function SettingsPage() {
                       onClick={() => toggleTopic(topic.id)}
                       className={`p-2 rounded-lg border cursor-pointer select-none flex items-center gap-2.5 transition-colors ${
                         isChecked
-                          ? 'border-amber-400 bg-amber-50/70 text-foreground shadow-2xs'
-                          : 'border-border/60 bg-white text-muted-foreground opacity-75'
+                          ? 'border-primary bg-primary-subtle text-foreground shadow-xs'
+                          : 'border-border bg-surface-raised text-muted-foreground'
                       }`}
                     >
                       <input
                         type="checkbox"
                         checked={isChecked}
                         onChange={() => {}}
-                        className="rounded border-amber-300 text-amber-500 focus:ring-amber-500 h-3.5 w-3.5"
+                        className="rounded border-border text-primary focus:ring-ring accent-primary h-3.5 w-3.5"
                       />
-                      <span className="truncate">{topic.name}</span>
+                      <span className="truncate text-xs font-medium">{topic.name}</span>
                     </div>
                   );
                 })}
@@ -305,9 +300,9 @@ export function SettingsPage() {
           </CardContent>
         </Card>
 
-        {/* Section 4: Theme Preferences */}
-        <Card className="border-amber-200/70 bg-white shadow-sm hover:shadow-md transition-shadow duration-200">
-          <CardHeader className="pb-4 border-b border-border/50">
+        {/* Section 3: Theme Preferences */}
+        <Card>
+          <CardHeader className="pb-4 border-b border-border">
             <CardTitle className="text-base font-semibold">Appearance & Theme</CardTitle>
           </CardHeader>
           <CardContent className="pt-6">
@@ -317,14 +312,14 @@ export function SettingsPage() {
                   type="button"
                   key={t}
                   onClick={() => setTheme(t)}
-                  className={`p-3.5 rounded-xl border text-center transition-all capitalize font-semibold text-xs flex items-center justify-center gap-2 ${
+                  className={`p-3 rounded-lg border text-center transition-colors capitalize font-semibold text-xs flex items-center justify-center gap-2 ${
                     settings.theme === t
-                      ? 'border-amber-400 bg-amber-50/80 text-amber-950 font-bold shadow-xs'
-                      : 'border-border/70 hover:bg-muted text-muted-foreground'
+                      ? 'border-primary bg-primary-subtle text-primary shadow-xs'
+                      : 'border-border bg-surface-raised hover:bg-muted text-muted-foreground'
                   }`}
                 >
                   {t === 'dark' && <Moon className="h-4 w-4" />}
-                  {t === 'light' && <Sun className="h-4 w-4 text-amber-600" />}
+                  {t === 'light' && <Sun className="h-4 w-4 text-primary" />}
                   {t === 'system' && <Cpu className="h-4 w-4" />}
                   <span>{t}</span>
                 </button>
@@ -333,11 +328,11 @@ export function SettingsPage() {
           </CardContent>
         </Card>
 
-        {/* Section 5: Local Data Management (Export / Import / Clear) */}
-        <Card className="border-amber-200/70 bg-white shadow-sm hover:shadow-md transition-shadow duration-200">
-          <CardHeader className="pb-4 border-b border-border/50">
+        {/* Section 4: Local Data Management (Export / Import / Clear) */}
+        <Card>
+          <CardHeader className="pb-4 border-b border-border">
             <div className="flex items-center gap-2">
-              <Database className="h-4 w-4 text-amber-600" />
+              <Database className="h-4 w-4 text-primary" />
               <CardTitle className="text-base font-semibold">
                 Local Database & Backup Management
               </CardTitle>
@@ -348,8 +343,8 @@ export function SettingsPage() {
           </CardHeader>
 
           <CardContent className="pt-6 space-y-4">
-            <div className="p-3.5 rounded-xl bg-amber-50/40 border border-amber-200/60 flex items-start gap-2.5 text-xs text-muted-foreground leading-relaxed">
-              <Info className="h-4 w-4 text-amber-600 shrink-0 mt-0.5" />
+            <div className="p-3.5 rounded-lg bg-primary-subtle border border-primary/20 flex items-start gap-2.5 text-xs text-foreground leading-relaxed">
+              <Info className="h-4 w-4 text-primary shrink-0 mt-0.5" />
               <span>
                 <strong>Storage Boundary:</strong> All interviews are stored inside your browser's IndexedDB. Data does not synchronize across separate browsers or incognito profiles unless exported and imported.
               </span>
@@ -361,10 +356,9 @@ export function SettingsPage() {
                 variant="outline"
                 size="sm"
                 onClick={handleExportBackup}
-                className="text-xs flex items-center gap-1.5 border-amber-300/80 bg-white hover:bg-amber-50/70 text-stone-800"
+                leftIcon={<Download className="h-3.5 w-3.5 text-primary" />}
               >
-                <Download className="h-3.5 w-3.5 text-amber-600" />
-                <span>Export Local Backup (JSON)</span>
+                Export Local Backup (JSON)
               </Button>
 
               <label className="cursor-pointer">
@@ -380,30 +374,29 @@ export function SettingsPage() {
                   variant="outline"
                   size="sm"
                   onClick={() => fileInputRef.current?.click()}
-                  className="text-xs flex items-center gap-1.5 border-amber-300/80 bg-white hover:bg-amber-50/70 text-stone-800"
+                  leftIcon={<Upload className="h-3.5 w-3.5 text-primary" />}
                 >
-                  <Upload className="h-3.5 w-3.5 text-amber-600" />
-                  <span>Import Backup (JSON)</span>
+                  Import Backup (JSON)
                 </Button>
               </label>
 
               <Button
                 type="button"
-                variant="destructive"
+                variant="danger"
                 size="sm"
                 onClick={() => setIsClearDataModalOpen(true)}
-                className="text-xs flex items-center gap-1.5 ml-auto"
+                className="ml-auto"
+                leftIcon={<Trash2 className="h-3.5 w-3.5" />}
               >
-                <Trash2 className="h-3.5 w-3.5" />
-                <span>Clear All Local Data</span>
+                Clear All Local Data
               </Button>
             </div>
           </CardContent>
         </Card>
 
         {/* Save Bar */}
-        <div className="flex items-center justify-end gap-3 pt-4 border-t border-border/80">
-          <Button type="submit" size="lg" className="text-xs sm:text-sm font-semibold">
+        <div className="flex items-center justify-end gap-3 pt-4 border-t border-border">
+          <Button type="submit" variant="primary" size="md">
             Save All Settings
           </Button>
         </div>
@@ -417,24 +410,22 @@ export function SettingsPage() {
         maxWidth="sm"
       >
         <div className="space-y-4">
-          <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
+          <p className="text-body text-muted-foreground leading-relaxed">
             This will permanently erase all saved interview sessions, questions, evaluations, DSA submissions, and generated reports stored in IndexedDB on this browser.
           </p>
 
-          <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-border/60">
+          <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-border">
             <Button
               variant="outline"
               size="sm"
               onClick={() => setIsClearDataModalOpen(false)}
-              className="h-8 px-4 text-xs font-semibold rounded-lg"
             >
               Cancel
             </Button>
             <Button
-              variant="destructive"
+              variant="danger"
               size="sm"
               onClick={handleClearAll}
-              className="h-8 px-4 text-xs font-bold rounded-lg"
             >
               Permanently Clear All
             </Button>
@@ -444,4 +435,3 @@ export function SettingsPage() {
     </div>
   );
 }
-

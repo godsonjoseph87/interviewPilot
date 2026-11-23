@@ -1,32 +1,44 @@
 import React from 'react';
 import { cva, type VariantProps } from 'class-variance-authority';
 import { cn } from '@/lib/utils';
+import { Loader2 } from 'lucide-react';
 
-const buttonVariants = cva(
-  'inline-flex items-center justify-center rounded-lg text-sm font-medium transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none active:scale-[0.98] shadow-xs hover:shadow-sm',
+export const buttonVariants = cva(
+  'inline-flex items-center justify-center whitespace-nowrap rounded-md text-small font-medium transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:pointer-events-none disabled:opacity-50 select-none active:scale-[0.99]',
   {
     variants: {
       variant: {
+        primary:
+          'bg-primary text-primary-foreground hover:bg-primary-hover btn-primary-glow font-semibold',
         default:
-          'bg-gradient-to-r from-amber-500 via-amber-400 to-yellow-500 hover:from-amber-600 hover:via-amber-500 hover:to-yellow-600 text-stone-950 font-bold shadow-md shadow-amber-500/20 hover:shadow-amber-500/35 border border-amber-400/50',
+          'bg-primary text-primary-foreground hover:bg-primary-hover btn-primary-glow font-semibold',
         secondary:
-          'bg-amber-50/80 text-amber-950 hover:bg-amber-100/80 border border-amber-200/80 font-medium shadow-xs hover:shadow-sm',
+          'bg-surface-raised text-foreground hover:bg-muted border border-border shadow-xs hover:shadow-sm',
         outline:
-          'border border-amber-300/80 bg-white hover:bg-amber-50/70 text-stone-800 hover:border-amber-500/80 shadow-xs hover:shadow-sm font-medium',
+          'border border-border bg-transparent hover:bg-surface-raised text-foreground hover:border-border-strong shadow-xs',
         ghost:
-          'hover:bg-amber-50/70 text-stone-700 hover:text-stone-950 shadow-none hover:shadow-none',
+          'text-muted-foreground hover:text-foreground hover:bg-surface-raised',
+        subtle:
+          'bg-primary-subtle text-primary hover:bg-primary-subtle/80 border border-primary-border',
+        danger:
+          'bg-danger text-white hover:bg-danger/90 shadow-xs hover:shadow-sm font-semibold',
         destructive:
-          'bg-rose-600 hover:bg-rose-500 text-white shadow-md shadow-rose-600/20 hover:shadow-rose-600/35',
-        accent:
-          'bg-gradient-to-r from-amber-600 via-amber-500 to-yellow-500 hover:from-amber-700 hover:to-amber-600 text-stone-950 font-bold shadow-md shadow-amber-500/25 hover:shadow-amber-500/40',
+          'bg-danger text-white hover:bg-danger/90 shadow-xs hover:shadow-sm font-semibold',
         success:
-          'bg-emerald-600 hover:bg-emerald-500 text-white shadow-md shadow-emerald-600/20 hover:shadow-emerald-600/35 font-semibold',
+          'bg-success text-white hover:bg-success/90 shadow-xs hover:shadow-sm font-semibold',
+        accent:
+          'bg-primary text-primary-foreground hover:bg-primary-hover btn-primary-glow font-semibold',
+        link:
+          'text-primary underline-offset-4 hover:underline p-0 h-auto',
       },
       size: {
-        default: 'h-10 px-4 py-2',
-        sm: 'h-8 rounded-lg px-3.5 text-xs font-semibold',
-        lg: 'h-11 rounded-lg px-6 text-base font-semibold',
-        icon: 'h-9 w-9 rounded-md',
+        default: 'h-9 px-4 py-2 text-small',
+        md: 'h-9 px-4 py-2 text-small',
+        sm: 'h-8 px-3 text-caption font-medium',
+        xs: 'h-7 px-2.5 text-caption font-medium',
+        lg: 'h-10 px-5 text-body font-semibold',
+        icon: 'h-9 w-9 p-0',
+        'icon-sm': 'h-7 w-7 p-0',
       },
     },
     defaultVariants: {
@@ -40,10 +52,25 @@ export interface ButtonProps
   extends React.ButtonHTMLAttributes<HTMLButtonElement>,
     VariantProps<typeof buttonVariants> {
   isLoading?: boolean;
+  leftIcon?: React.ReactNode;
+  rightIcon?: React.ReactNode;
 }
 
 export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ className, variant, size, isLoading, children, disabled, ...props }, ref) => {
+  (
+    {
+      className,
+      variant,
+      size,
+      isLoading = false,
+      leftIcon,
+      rightIcon,
+      children,
+      disabled,
+      ...props
+    },
+    ref
+  ) => {
     return (
       <button
         ref={ref}
@@ -53,34 +80,19 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       >
         {isLoading ? (
           <span className="flex items-center gap-2">
-            <svg
-              className="h-4 w-4 animate-spin text-current"
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-            >
-              <circle
-                className="opacity-25"
-                cx="12"
-                cy="12"
-                r="10"
-                stroke="currentColor"
-                strokeWidth="4"
-              ></circle>
-              <path
-                className="opacity-75"
-                fill="currentColor"
-                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-              ></path>
-            </svg>
-            <span>{children}</span>
+            <Loader2 className="h-3.5 w-3.5 animate-spin shrink-0" />
+            {children}
           </span>
         ) : (
-          children
+          <span className="inline-flex items-center gap-1.5">
+            {leftIcon && <span className="shrink-0">{leftIcon}</span>}
+            {children}
+            {rightIcon && <span className="shrink-0">{rightIcon}</span>}
+          </span>
         )}
       </button>
     );
   }
 );
-Button.displayName = 'Button';
 
+Button.displayName = 'Button';

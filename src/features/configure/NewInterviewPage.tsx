@@ -6,11 +6,8 @@ import {
   Code2,
   Sliders,
   CheckCircle,
-  HelpCircle,
   ArrowRight,
   User,
-  Mail,
-  Briefcase,
   AlertTriangle,
   RotateCcw,
   Check,
@@ -19,7 +16,9 @@ import { Button } from '@/components/ui/Button';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/Card';
 import { Input } from '@/components/ui/Input';
 import { Textarea } from '@/components/ui/Textarea';
+import { Select } from '@/components/ui/Select';
 import { Badge } from '@/components/ui/Badge';
+import { PageHeader } from '@/components/ui/PageHeader';
 import { useAuthStore } from '@/store/useAuthStore';
 import { useSettingsStore } from '@/store/useSettingsStore';
 import { useInterviewSessionStore } from '@/store/useInterviewSessionStore';
@@ -43,7 +42,7 @@ export function NewInterviewPage({ onStartSession, onCancel }: NewInterviewPageP
   const { settings } = useSettingsStore();
   const { initNewSession } = useInterviewSessionStore();
 
-  // Form State (Clean empty states with clear placeholder hints)
+  // Form State
   const [candidateName, setCandidateName] = useState('');
   const [candidateEmail, setCandidateEmail] = useState('');
   const [jobPosition, setJobPosition] = useState('');
@@ -88,7 +87,7 @@ export function NewInterviewPage({ onStartSession, onCancel }: NewInterviewPageP
   const [generationError, setGenerationError] = useState<string | null>(null);
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
 
-  // Auto-scroll to top, lock page scrolling, and track live elapsed generation timer
+  // Track elapsed timer during AI synthesis
   useEffect(() => {
     let timer: any;
     if (isGenerating) {
@@ -96,29 +95,17 @@ export function NewInterviewPage({ onStartSession, onCancel }: NewInterviewPageP
       timer = setInterval(() => {
         setElapsedSeconds((prev) => prev + 1);
       }, 1000);
-
       window.scrollTo({ top: 0, behavior: 'smooth' });
-      const origBodyOverflow = document.body.style.overflow;
-      const origHtmlOverflow = document.documentElement.style.overflow;
-      document.body.style.overflow = 'hidden';
-      document.documentElement.style.overflow = 'hidden';
-
-      return () => {
-        if (timer) clearInterval(timer);
-        document.body.style.overflow = origBodyOverflow;
-        document.documentElement.style.overflow = origHtmlOverflow;
-      };
     }
+    return () => {
+      if (timer) clearInterval(timer);
+    };
   }, [isGenerating]);
 
-  // Toggle topics
   const handleToggleTopic = (topicId: string) => {
-    if (selectedTopics.includes(topicId)) {
-      if (selectedTopics.length === 1) return; // keep at least one
-      setSelectedTopics(selectedTopics.filter((t) => t !== topicId));
-    } else {
-      setSelectedTopics([...selectedTopics, topicId]);
-    }
+    setSelectedTopics((prev) =>
+      prev.includes(topicId) ? prev.filter((id) => id !== topicId) : [...prev, topicId]
+    );
   };
 
   const handleSelectAllTopics = () => {
@@ -140,15 +127,16 @@ export function NewInterviewPage({ onStartSession, onCancel }: NewInterviewPageP
     ]);
   };
 
-  // Compute dynamic duration breakdown
   const computeDurationBreakdown = () => {
-    const total = durationMinutes;
+    const hasDsa = selectedTopics.includes('dsa');
+    const dsaMins = hasDsa ? (dsaProblemCount === 1 ? 15 : dsaProblemCount === 2 ? 22 : 30) : 0;
     const introMins = 5;
-    const dsaMins = selectedTopics.includes('dsa') ? (total === 30 ? 10 : total === 45 ? 12 : total === 60 ? 15 : 20) : 0;
-    const remainingForTopics = Math.max(10, total - introMins - dsaMins);
-
+    const remainingForTopics = Math.max(15, durationMinutes - introMins - dsaMins);
     const nonDsaTopics = selectedTopics.filter((t) => t !== 'dsa');
-    const perTopicMinutes = nonDsaTopics.length > 0 ? Math.max(4, Math.round(remainingForTopics / nonDsaTopics.length)) : 6;
+    const perTopicMinutes =
+      nonDsaTopics.length > 0
+        ? Math.max(4, Math.round(remainingForTopics / nonDsaTopics.length))
+        : 6;
 
     return {
       introMins,
@@ -201,7 +189,7 @@ export function NewInterviewPage({ onStartSession, onCancel }: NewInterviewPageP
           enableScenarios,
           dsaLanguage,
         },
-        true // Allow calibrated senior mock if no API key is set yet
+        true
       );
 
       setGenerationStep('Validating schema and category distributions...');
@@ -285,7 +273,11 @@ export function NewInterviewPage({ onStartSession, onCancel }: NewInterviewPageP
         currentQuestionIndex: 0,
       };
 
-      await initNewSession(newSession, customizedQuestions, MOCK_DSA_PROBLEMS.slice(0, dsaProblemCount));
+      await initNewSession(
+        newSession,
+        customizedQuestions,
+        MOCK_DSA_PROBLEMS.slice(0, dsaProblemCount)
+      );
       onStartSession(sessionId);
     } catch (err: any) {
       console.error('Failed to initialize fallback session:', err);
@@ -294,48 +286,40 @@ export function NewInterviewPage({ onStartSession, onCancel }: NewInterviewPageP
 
   return (
     <>
-      <div className="w-full px-[10%] pt-[80px] pb-16 animate-fade-in space-y-6">
-        {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border/80 pb-6">
-          <div>
-            <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-primary/10 text-primary text-xs font-semibold mb-2">
-              <Sliders className="h-3.5 w-3.5" />
-              <span>Interview Designer</span>
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 animate-fade-in space-y-8">
+        {/* Page Header */}
+        <PageHeader
+          eyebrow="Interview Designer"
+          title="Configure New Interview"
+          description="Specify candidate profile, duration, difficulty, and technical focus areas."
+          actions={
+            <div className="flex items-center gap-2.5">
+              <Button variant="outline" size="md" onClick={onCancel}>
+                Cancel
+              </Button>
+              <Button
+                type="button"
+                variant="primary"
+                size="md"
+                onClick={handleStartInterview}
+                disabled={isGenerating}
+                leftIcon={<Sparkles className="h-4 w-4" />}
+              >
+                Generate & Start
+              </Button>
             </div>
-            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground">
-              Configure New Interview
-            </h1>
-            <p className="text-sm text-muted-foreground mt-1">
-              Specify candidate profile, duration, difficulty, and technical focus areas.
-            </p>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm" onClick={onCancel}>
-              Cancel
-            </Button>
-            <Button
-              type="button"
-              size="sm"
-              onClick={handleStartInterview}
-              disabled={isGenerating}
-              className="flex items-center gap-2"
-            >
-              <Sparkles className="h-4 w-4" />
-              <span>Generate & Start</span>
-            </Button>
-          </div>
-        </div>
+          }
+        />
 
         {/* Error notification if generation failed */}
         {generationError && (
-          <div className="p-4 rounded-xl border border-rose-500/40 bg-rose-500/10 text-rose-300 text-xs sm:text-sm flex items-start justify-between gap-4 shadow-lg animate-fade-in">
+          <div className="p-4 rounded-lg border border-danger-border bg-danger-subtle text-danger-foreground text-caption sm:text-small flex items-start justify-between gap-4 shadow-sm animate-fade-in">
             <div className="flex items-start gap-3">
-              <AlertTriangle className="h-5 w-5 text-rose-400 shrink-0 mt-0.5" />
+              <AlertTriangle className="h-5 w-5 text-danger shrink-0 mt-0.5" />
               <div className="space-y-2">
                 <div>
-                  <p className="font-semibold text-rose-200">Interview Generation Notice</p>
-                  <p className="mt-0.5 whitespace-pre-line text-xs text-rose-300/90 leading-relaxed font-mono">
+                  <p className="font-semibold text-foreground">Interview Generation Notice</p>
+                  <p className="mt-0.5 whitespace-pre-line text-caption text-muted-foreground leading-relaxed font-mono">
                     {generationError}
                   </p>
                 </div>
@@ -343,88 +327,74 @@ export function NewInterviewPage({ onStartSession, onCancel }: NewInterviewPageP
                 <div className="flex flex-wrap items-center gap-2.5 pt-1">
                   <Button
                     type="button"
-                    size="sm"
+                    variant="primary"
+                    size="xs"
                     onClick={handleStartWithCalibratedQuestions}
-                    className="text-xs bg-cyan-600 hover:bg-cyan-500 text-white font-semibold flex items-center gap-1.5 shadow-md shadow-cyan-600/30"
+                    leftIcon={<Sparkles className="h-3.5 w-3.5" />}
                   >
-                    <Sparkles className="h-3.5 w-3.5" />
-                    <span>Start with Calibrated Senior Question Bank (Instant)</span>
+                    Start with Calibrated Question Bank (Instant)
                   </Button>
 
                   <Button
                     type="button"
                     variant="outline"
-                    size="sm"
+                    size="xs"
                     onClick={handleStartInterview}
-                    className="text-xs border-zinc-700 bg-zinc-900 hover:bg-zinc-800 text-zinc-200 flex items-center gap-1.5"
+                    leftIcon={<RotateCcw className="h-3.5 w-3.5" />}
                   >
-                    <RotateCcw className="h-3.5 w-3.5" />
-                    <span>Retry Gemini AI (90s Timeout)</span>
+                    Retry Gemini AI
                   </Button>
                 </div>
               </div>
             </div>
             <Button
               variant="ghost"
-              size="sm"
+              size="xs"
               onClick={() => setGenerationError(null)}
-              className="text-xs text-rose-300 shrink-0"
             >
               Dismiss
             </Button>
           </div>
         )}
 
-        {/* Generating Overlay Modal if active - Portaled directly to document.body to ensure perfect viewport centering & scroll lock */}
+        {/* Generating Overlay Modal if active */}
         {isGenerating &&
           createPortal(
             <div
-              className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-background/90 backdrop-blur-xl overscroll-none overflow-hidden touch-none select-none"
+              className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm select-none"
               style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, width: '100vw', height: '100vh' }}
-              onWheel={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-              }}
-              onTouchMove={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-              }}
             >
-              <div className="max-w-md w-full rounded-2xl border border-border bg-card p-8 text-center space-y-6 shadow-2xl animate-scale-in">
-                <div className="relative mx-auto w-16 h-16 flex items-center justify-center">
-                  <div className="absolute inset-0 rounded-full border-4 border-amber-400/30 animate-ping" />
-                  <div className="h-16 w-16 rounded-full bg-gradient-to-tr from-amber-500 via-amber-400 to-yellow-500 flex items-center justify-center shadow-lg shadow-amber-500/30">
-                    <Sparkles className="h-8 w-8 text-stone-950 animate-spin" />
-                  </div>
+              <div className="max-w-md w-full rounded-xl border border-border bg-card p-8 text-center space-y-6 shadow-overlay animate-rise-in">
+                <div className="mx-auto w-12 h-12 rounded-xl bg-primary-subtle border border-primary-border flex items-center justify-center text-primary shadow-xs">
+                  <Sparkles className="h-6 w-6 animate-spin" />
                 </div>
 
-                <div className="space-y-2">
-                  <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-300/60 text-xs text-amber-800 font-mono font-medium">
-                    <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
-                    <span>{settings.geminiModel || 'gemini-3.5-flash-lite'}</span>
-                    <span className="text-muted-foreground">•</span>
-                    <span className="text-muted-foreground flex items-center gap-1">
+                <div className="space-y-1.5">
+                  <div className="inline-flex items-center gap-2 px-2.5 py-0.5 rounded-full bg-surface-raised border border-border text-caption text-muted-foreground font-mono">
+                    <span className="w-1.5 h-1.5 rounded-full bg-primary" />
+                    <span>{settings.geminiModel || 'gemini-2.5-flash'}</span>
+                    <span>•</span>
+                    <span className="flex items-center gap-1 tabular-nums">
                       <Clock className="h-3 w-3" />
                       {elapsedSeconds}s
                     </span>
                   </div>
 
-                  <h3 className="text-xl font-bold text-foreground tracking-tight">
+                  <h3 className="text-h3 font-semibold text-foreground tracking-tight">
                     Generating Technical Interview
                   </h3>
-                  <p className="text-sm text-amber-700 font-mono font-semibold animate-pulse">
+                  <p className="text-small text-primary font-mono font-medium">
                     {generationStep}
                   </p>
-                  <p className="text-xs text-muted-foreground pt-1 leading-relaxed">
-                    Synthesizing interview questions, evaluation rubrics, and DSA coding challenges via Google Gemini.
+                  <p className="text-caption text-muted-foreground pt-1 leading-relaxed">
+                    Synthesizing interview questions, evaluation rubrics, and DSA challenges via Gemini.
                   </p>
                 </div>
 
-                <div className="h-2 w-full bg-amber-100/70 rounded-full overflow-hidden border border-amber-200">
-                  <div className="h-full bg-gradient-to-r from-amber-500 via-amber-400 to-yellow-500 rounded-full animate-pulse-slow w-full" />
+                <div className="h-1.5 w-full bg-muted rounded-full overflow-hidden">
+                  <div className="h-full bg-primary rounded-full transition-all duration-300 w-full" />
                 </div>
 
-                {/* Instant fallback option if API request takes longer than 12 seconds */}
                 {elapsedSeconds >= 12 && (
                   <div className="pt-3 border-t border-border animate-fade-in space-y-2">
                     <button
@@ -433,12 +403,12 @@ export function NewInterviewPage({ onStartSession, onCancel }: NewInterviewPageP
                         setIsGenerating(false);
                         handleStartWithCalibratedQuestions();
                       }}
-                      className="text-xs text-primary hover:text-primary/80 underline underline-offset-4 transition-colors font-medium cursor-pointer"
+                      className="text-caption text-primary hover:underline transition-colors font-medium cursor-pointer"
                     >
-                      Need to start immediately? Launch with Senior Question Bank &rarr;
+                      Need to start immediately? Launch with Calibrated Bank &rarr;
                     </button>
-                    <p className="text-[10px] text-muted-foreground">
-                      Instantly opens workspace with calibrated senior Java & DSA questions without waiting.
+                    <p className="text-caption text-muted-foreground">
+                      Instantly opens workspace with calibrated senior Java & DSA questions.
                     </p>
                   </div>
                 )}
@@ -449,20 +419,20 @@ export function NewInterviewPage({ onStartSession, onCancel }: NewInterviewPageP
 
         <form onSubmit={handleStartInterview} className="space-y-8">
           {/* Section 1: Candidate Details */}
-          <Card className="border-amber-200/70 bg-white shadow-sm hover:shadow-md transition-shadow duration-200">
-            <CardHeader className="pb-4 border-b border-border/50">
+          <Card>
+            <CardHeader className="pb-4 border-b border-border">
               <div className="flex items-center gap-2">
-                <User className="h-4 w-4 text-amber-600" />
-                <CardTitle className="text-base font-semibold">1. Candidate Information</CardTitle>
+                <User className="h-4 w-4 text-primary" />
+                <CardTitle>1. Candidate Information</CardTitle>
               </div>
-              <CardDescription className="text-xs">
-                Candidate profile details used by Gemini to calibrate scenario complexity
+              <CardDescription>
+                Candidate profile details used to calibrate scenario depth and complexity
               </CardDescription>
             </CardHeader>
 
             <CardContent className="pt-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               <div>
-                <label className="block text-xs font-semibold text-foreground mb-1">
+                <label className="block text-caption font-semibold text-foreground mb-1.5">
                   Candidate Full Name *
                 </label>
                 <Input
@@ -474,7 +444,7 @@ export function NewInterviewPage({ onStartSession, onCancel }: NewInterviewPageP
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-foreground mb-1">
+                <label className="block text-caption font-semibold text-foreground mb-1.5">
                   Candidate Email (Optional)
                 </label>
                 <Input
@@ -486,7 +456,7 @@ export function NewInterviewPage({ onStartSession, onCancel }: NewInterviewPageP
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-foreground mb-1">
+                <label className="block text-caption font-semibold text-foreground mb-1.5">
                   Target Job Position *
                 </label>
                 <Input
@@ -498,7 +468,7 @@ export function NewInterviewPage({ onStartSession, onCancel }: NewInterviewPageP
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-foreground mb-1">
+                <label className="block text-caption font-semibold text-foreground mb-1.5">
                   Total Professional Experience *
                 </label>
                 <Input
@@ -510,7 +480,7 @@ export function NewInterviewPage({ onStartSession, onCancel }: NewInterviewPageP
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-foreground mb-1">
+                <label className="block text-caption font-semibold text-foreground mb-1.5">
                   Relevant Java / Backend Experience *
                 </label>
                 <Input
@@ -522,7 +492,7 @@ export function NewInterviewPage({ onStartSession, onCancel }: NewInterviewPageP
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-foreground mb-1">
+                <label className="block text-caption font-semibold text-foreground mb-1.5">
                   Interviewer Name *
                 </label>
                 <Input
@@ -534,7 +504,7 @@ export function NewInterviewPage({ onStartSession, onCancel }: NewInterviewPageP
               </div>
 
               <div className="sm:col-span-2 lg:col-span-3">
-                <label className="block text-xs font-semibold text-foreground mb-1">
+                <label className="block text-caption font-semibold text-foreground mb-1.5">
                   Candidate Resume Context & Background (Optional)
                 </label>
                 <Textarea
@@ -542,20 +512,19 @@ export function NewInterviewPage({ onStartSession, onCancel }: NewInterviewPageP
                   onChange={(e) => setCandidateBackground(e.target.value)}
                   placeholder="Paste notable achievements, technologies, high scale claims, or architecture patterns from the candidate's resume..."
                   rows={2}
-                  className="text-xs"
                 />
               </div>
             </CardContent>
           </Card>
 
-          {/* Section 2: Interview Calibration (Difficulty & Duration) */}
-          <Card className="border-amber-200/70 bg-white shadow-sm hover:shadow-md transition-shadow duration-200">
-            <CardHeader className="pb-4 border-b border-border/50">
+          {/* Section 2: Calibration (Difficulty & Duration) */}
+          <Card>
+            <CardHeader className="pb-4 border-b border-border">
               <div className="flex items-center gap-2">
-                <Clock className="h-4 w-4 text-amber-600" />
-                <CardTitle className="text-base font-semibold">2. Duration & Difficulty Level</CardTitle>
+                <Clock className="h-4 w-4 text-primary" />
+                <CardTitle>2. Duration & Difficulty Level</CardTitle>
               </div>
-              <CardDescription className="text-xs">
+              <CardDescription>
                 Configure pace, depth, and duration targets
               </CardDescription>
             </CardHeader>
@@ -563,7 +532,7 @@ export function NewInterviewPage({ onStartSession, onCancel }: NewInterviewPageP
             <CardContent className="pt-6 space-y-6">
               {/* Difficulty Selection */}
               <div>
-                <label className="block text-xs font-semibold text-foreground mb-2">
+                <label className="block text-caption font-semibold text-foreground mb-2">
                   Target Interview Difficulty
                 </label>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
@@ -573,19 +542,23 @@ export function NewInterviewPage({ onStartSession, onCancel }: NewInterviewPageP
                       <div
                         key={lvl.id}
                         onClick={() => setDifficulty(lvl.id as Difficulty)}
-                        className={`p-3.5 rounded-xl border cursor-pointer transition-all ${
+                        className={`p-3.5 rounded-lg border cursor-pointer transition-all ${
                           isSelected
-                            ? 'border-primary bg-primary/10 shadow-sm'
-                            : 'border-border/70 hover:border-border bg-secondary/30'
+                            ? 'border-primary bg-primary-subtle shadow-xs'
+                            : 'border-border bg-card hover:border-border-strong hover:bg-surface-raised'
                         }`}
                       >
                         <div className="flex items-center justify-between mb-1">
-                          <span className={`text-xs font-bold ${isSelected ? 'text-primary' : 'text-foreground'}`}>
+                          <span
+                            className={`text-small font-semibold ${
+                              isSelected ? 'text-primary' : 'text-foreground'
+                            }`}
+                          >
                             {lvl.label}
                           </span>
                           {isSelected && <Check className="h-4 w-4 text-primary" />}
                         </div>
-                        <p className="text-[11px] text-muted-foreground leading-snug">
+                        <p className="text-caption text-muted-foreground leading-relaxed">
                           {lvl.description}
                         </p>
                       </div>
@@ -596,7 +569,7 @@ export function NewInterviewPage({ onStartSession, onCancel }: NewInterviewPageP
 
               {/* Duration Selection */}
               <div>
-                <label className="block text-xs font-semibold text-foreground mb-2">
+                <label className="block text-caption font-semibold text-foreground mb-2">
                   Total Allocated Duration
                 </label>
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
@@ -606,16 +579,20 @@ export function NewInterviewPage({ onStartSession, onCancel }: NewInterviewPageP
                       <div
                         key={dur.value}
                         onClick={() => setDurationMinutes(dur.value)}
-                        className={`p-3.5 rounded-xl border cursor-pointer text-center transition-all ${
+                        className={`p-3.5 rounded-lg border cursor-pointer text-center transition-all ${
                           isSelected
-                            ? 'border-primary bg-primary/10 shadow-sm'
-                            : 'border-border/70 hover:border-border bg-secondary/30'
+                            ? 'border-primary bg-primary-subtle shadow-xs'
+                            : 'border-border bg-card hover:border-border-strong hover:bg-surface-raised'
                         }`}
                       >
-                        <span className={`text-sm font-bold block ${isSelected ? 'text-primary' : 'text-foreground'}`}>
+                        <span
+                          className={`text-small font-semibold block ${
+                            isSelected ? 'text-primary' : 'text-foreground'
+                          }`}
+                        >
                           {dur.label}
                         </span>
-                        <span className="text-[10px] text-muted-foreground">
+                        <span className="text-caption text-muted-foreground">
                           Approx. {dur.questionsTarget} questions + DSA
                         </span>
                       </div>
@@ -625,45 +602,45 @@ export function NewInterviewPage({ onStartSession, onCancel }: NewInterviewPageP
               </div>
 
               {/* Dynamic Duration Breakdown Bar */}
-              <div className="p-4 rounded-xl border border-border/80 bg-secondary/20 space-y-2">
-                <div className="flex items-center justify-between text-xs">
+              <div className="p-4 rounded-lg border border-border bg-surface-raised space-y-2">
+                <div className="flex items-center justify-between text-caption">
                   <span className="font-semibold text-foreground flex items-center gap-1.5">
                     <Clock className="h-3.5 w-3.5 text-primary" />
                     <span>Time Allocation Schedule ({durationMinutes} Minutes Total)</span>
                   </span>
-                  <span className="text-muted-foreground font-mono">
-                    ~{breakdown.perTopicMinutes} min per technical topic
+                  <span className="text-muted-foreground font-mono tabular-nums">
+                    ~{breakdown.perTopicMinutes} min per topic
                   </span>
                 </div>
 
-                <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-2 pt-1 text-center text-xs">
-                  <div className="p-2 rounded-lg bg-secondary/60 border border-border/50">
-                    <span className="font-bold text-foreground block">5 min</span>
-                    <span className="text-[10px] text-muted-foreground">Introduction</span>
+                <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-2 pt-1 text-center text-caption">
+                  <div className="p-2 rounded-md bg-card border border-border">
+                    <span className="font-semibold text-foreground block">5 min</span>
+                    <span className="text-muted-foreground">Introduction</span>
                   </div>
-                  <div className="p-2 rounded-lg bg-secondary/60 border border-border/50">
-                    <span className="font-bold text-foreground block">8 min</span>
-                    <span className="text-[10px] text-muted-foreground">Java & OOP</span>
+                  <div className="p-2 rounded-md bg-card border border-border">
+                    <span className="font-semibold text-foreground block">8 min</span>
+                    <span className="text-muted-foreground">Java & OOP</span>
                   </div>
-                  <div className="p-2 rounded-lg bg-secondary/60 border border-border/50">
-                    <span className="font-bold text-foreground block">10 min</span>
-                    <span className="text-[10px] text-muted-foreground">Spring Boot</span>
+                  <div className="p-2 rounded-md bg-card border border-border">
+                    <span className="font-semibold text-foreground block">10 min</span>
+                    <span className="text-muted-foreground">Spring Boot</span>
                   </div>
-                  <div className="p-2 rounded-lg bg-secondary/60 border border-border/50">
-                    <span className="font-bold text-foreground block">8 min</span>
-                    <span className="text-[10px] text-muted-foreground">Kafka & DB</span>
+                  <div className="p-2 rounded-md bg-card border border-border">
+                    <span className="font-semibold text-foreground block">8 min</span>
+                    <span className="text-muted-foreground">Kafka & DB</span>
                   </div>
-                  <div className="p-2 rounded-lg bg-secondary/60 border border-border/50">
-                    <span className="font-bold text-foreground block">10 min</span>
-                    <span className="text-[10px] text-muted-foreground">Architecture</span>
+                  <div className="p-2 rounded-md bg-card border border-border">
+                    <span className="font-semibold text-foreground block">10 min</span>
+                    <span className="text-muted-foreground">Architecture</span>
                   </div>
-                  <div className="p-2 rounded-lg bg-secondary/60 border border-border/50">
-                    <span className="font-bold text-foreground block">7 min</span>
-                    <span className="text-[10px] text-muted-foreground">Incidents</span>
+                  <div className="p-2 rounded-md bg-card border border-border">
+                    <span className="font-semibold text-foreground block">7 min</span>
+                    <span className="text-muted-foreground">Incidents</span>
                   </div>
-                  <div className="p-2 rounded-lg bg-primary/10 border border-primary/25">
-                    <span className="font-bold text-primary block">{breakdown.dsaMins} min</span>
-                    <span className="text-[10px] text-muted-foreground">DSA Coding</span>
+                  <div className="p-2 rounded-md bg-primary-subtle border border-primary-border">
+                    <span className="font-semibold text-primary block">{breakdown.dsaMins} min</span>
+                    <span className="text-muted-foreground">DSA Coding</span>
                   </div>
                 </div>
               </div>
@@ -671,26 +648,24 @@ export function NewInterviewPage({ onStartSession, onCancel }: NewInterviewPageP
           </Card>
 
           {/* Section 3: Technical Topics Multi-Select */}
-          <Card className="border-amber-200/70 bg-white shadow-sm hover:shadow-md transition-shadow duration-200">
-            <CardHeader className="pb-4 border-b border-border/50">
+          <Card>
+            <CardHeader className="pb-4 border-b border-border">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div className="flex items-center gap-2">
-                  <Code2 className="h-4 w-4 text-amber-600" />
+                  <Code2 className="h-4 w-4 text-primary" />
                   <div>
-                    <CardTitle className="text-base font-semibold">
-                      3. Technical Competency Topics
-                    </CardTitle>
-                    <CardDescription className="text-xs">
+                    <CardTitle>3. Technical Competency Topics</CardTitle>
+                    <CardDescription>
                       Selected ({selectedTopics.length} / {TECHNICAL_TOPICS.length}) topics to generate questions for
                     </CardDescription>
                   </div>
                 </div>
 
-                <div className="flex items-center gap-2 text-xs">
+                <div className="flex items-center gap-2 text-caption">
                   <button
                     type="button"
                     onClick={handleSelectDefaultTopics}
-                    className="text-amber-800 hover:underline font-semibold"
+                    className="text-primary hover:underline font-medium"
                   >
                     Select Default (10)
                   </button>
@@ -714,29 +689,27 @@ export function NewInterviewPage({ onStartSession, onCancel }: NewInterviewPageP
                     <div
                       key={topic.id}
                       onClick={() => handleToggleTopic(topic.id)}
-                      className={`p-3 rounded-xl border cursor-pointer transition-all flex items-start gap-3 select-none ${
+                      className={`p-3 rounded-lg border cursor-pointer transition-all flex items-start gap-3 select-none ${
                         isChecked
-                          ? 'border-amber-400 bg-amber-50/70 shadow-xs'
-                          : 'border-border/60 hover:border-amber-200 bg-white opacity-80'
+                          ? 'border-primary bg-primary-subtle shadow-xs'
+                          : 'border-border bg-card hover:border-border-strong hover:bg-surface-raised'
                       }`}
                     >
                       <div
                         className={`h-4 w-4 rounded mt-0.5 flex items-center justify-center shrink-0 border transition-colors ${
                           isChecked
-                            ? 'bg-gradient-to-r from-amber-500 to-yellow-500 border-amber-400 text-stone-950 font-bold'
-                            : 'border-border bg-white'
+                            ? 'bg-primary border-primary text-primary-foreground font-bold'
+                            : 'border-input bg-surface'
                         }`}
                       >
                         {isChecked && <Check className="h-3 w-3 stroke-[3]" />}
                       </div>
 
                       <div className="space-y-0.5">
-                        <div className="flex items-center gap-1.5">
-                          <span className="text-xs font-semibold text-foreground">
-                            {index + 1}. {topic.name}
-                          </span>
-                        </div>
-                        <p className="text-[10px] text-muted-foreground leading-snug">
+                        <span className="text-small font-medium text-foreground block">
+                          {index + 1}. {topic.name}
+                        </span>
+                        <p className="text-caption text-muted-foreground leading-snug">
                           {topic.description}
                         </p>
                       </div>
@@ -747,51 +720,50 @@ export function NewInterviewPage({ onStartSession, onCancel }: NewInterviewPageP
             </CardContent>
           </Card>
 
-          {/* Section 4: DSA & Custom Directives */}
-          <Card className="border-amber-200/70 bg-white shadow-sm hover:shadow-md transition-shadow duration-200">
-            <CardHeader className="pb-4 border-b border-border/50">
+          {/* Section 4: DSA & Advanced Directives */}
+          <Card>
+            <CardHeader className="pb-4 border-b border-border">
               <div className="flex items-center gap-2">
-                <Sparkles className="h-4 w-4 text-amber-600" />
-                <CardTitle className="text-base font-semibold">4. DSA & Advanced Directives</CardTitle>
+                <Sparkles className="h-4 w-4 text-primary" />
+                <CardTitle>4. DSA & Advanced Directives</CardTitle>
               </div>
-              <CardDescription className="text-xs">
-                Customize algorithmic coding assessment and custom interviewer prompt directives
+              <CardDescription>
+                Customize algorithmic coding assessment and custom interviewer instructions
               </CardDescription>
             </CardHeader>
 
             <CardContent className="pt-6 grid grid-cols-1 sm:grid-cols-2 gap-6">
               <div className="space-y-4">
                 <div>
-                  <label className="block text-xs font-semibold text-foreground mb-1">
+                  <label className="block text-caption font-semibold text-foreground mb-1.5">
                     Candidate's Preferred DSA Language
                   </label>
-                  <select
+                  <Select
                     value={dsaLanguage}
                     onChange={(e) => setDsaLanguage(e.target.value)}
-                    className="flex h-10 w-full rounded-lg border border-input bg-card px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                   >
                     {DSA_LANGUAGES.map((lang) => (
                       <option key={lang.id} value={lang.id}>
                         {lang.name}
                       </option>
                     ))}
-                  </select>
+                  </Select>
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-foreground mb-1">
+                  <label className="block text-caption font-semibold text-foreground mb-1.5">
                     Number of DSA Problems
                   </label>
-                  <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-2">
                     {[1, 2, 3].map((num) => (
                       <button
                         type="button"
                         key={num}
                         onClick={() => setDsaProblemCount(num)}
-                        className={`flex-1 py-2 rounded-lg text-xs font-semibold border transition-all ${
+                        className={`flex-1 py-1.5 rounded-md text-caption font-medium border transition-colors ${
                           dsaProblemCount === num
-                            ? 'border-primary bg-primary/15 text-primary'
-                            : 'border-border/70 hover:bg-muted text-muted-foreground'
+                            ? 'border-primary bg-primary-subtle text-primary font-semibold'
+                            : 'border-border bg-card hover:bg-surface-raised text-muted-foreground'
                         }`}
                       >
                         {num} {num === 1 ? 'Problem' : 'Problems'}
@@ -800,13 +772,13 @@ export function NewInterviewPage({ onStartSession, onCancel }: NewInterviewPageP
                   </div>
                 </div>
 
-                <div className="pt-2 space-y-2.5">
-                  <div className="flex items-center justify-between p-2.5 rounded-lg border border-border/60 bg-secondary/30">
+                <div className="pt-2 space-y-2">
+                  <div className="flex items-center justify-between p-3 rounded-md border border-border bg-surface-raised">
                     <div>
-                      <span className="text-xs font-semibold text-foreground block">
+                      <span className="text-small font-medium text-foreground block">
                         Generate Follow-Up Questions
                       </span>
-                      <span className="text-[11px] text-muted-foreground">
+                      <span className="text-caption text-muted-foreground">
                         Include 1-2 probing sub-questions per topic
                       </span>
                     </div>
@@ -818,12 +790,12 @@ export function NewInterviewPage({ onStartSession, onCancel }: NewInterviewPageP
                     />
                   </div>
 
-                  <div className="flex items-center justify-between p-2.5 rounded-lg border border-border/60 bg-secondary/30">
+                  <div className="flex items-center justify-between p-3 rounded-md border border-border bg-surface-raised">
                     <div>
-                      <span className="text-xs font-semibold text-foreground block">
+                      <span className="text-small font-medium text-foreground block">
                         Prioritize Real-World Production Scenarios
                       </span>
-                      <span className="text-[11px] text-muted-foreground">
+                      <span className="text-caption text-muted-foreground">
                         Frame questions around outages, deadlocks, and latency
                       </span>
                     </div>
@@ -838,7 +810,7 @@ export function NewInterviewPage({ onStartSession, onCancel }: NewInterviewPageP
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-foreground mb-1">
+                <label className="block text-caption font-semibold text-foreground mb-1.5">
                   Custom Interviewer Instructions
                 </label>
                 <Textarea
@@ -846,31 +818,33 @@ export function NewInterviewPage({ onStartSession, onCancel }: NewInterviewPageP
                   onChange={(e) => setCustomInstructions(e.target.value)}
                   placeholder="e.g. Focus on high write contention, Redis eviction policies, and zero downtime schema migrations..."
                   rows={6}
-                  className="text-xs"
                 />
               </div>
             </CardContent>
           </Card>
 
-          {/* Action Footer */}
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-4 border-t border-border/80">
+          {/* Sticky Summary / Action Footer */}
+          <div className="sticky bottom-0 z-20 py-4 border-t border-border bg-surface/90 backdrop-blur-md -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-sm">
             <Button
               type="button"
               variant="outline"
+              size="md"
               onClick={onCancel}
-              className="h-10 px-5 text-sm font-semibold rounded-lg w-full sm:w-auto"
+              className="w-full sm:w-auto"
             >
               Cancel & Return to Dashboard
             </Button>
 
             <Button
               type="submit"
+              variant="primary"
+              size="md"
               disabled={isGenerating}
-              className="h-10 px-5 text-sm font-bold rounded-lg w-full sm:w-auto flex items-center justify-center gap-2 shadow-md shadow-primary/20"
+              className="w-full sm:w-auto"
+              leftIcon={<Sparkles className="h-4 w-4" />}
+              rightIcon={<ArrowRight className="h-4 w-4" />}
             >
-              <Sparkles className="h-4 w-4" />
-              <span>Generate Questions & Launch Workspace</span>
-              <ArrowRight className="h-4 w-4" />
+              Generate Questions & Launch Workspace
             </Button>
           </div>
         </form>
@@ -878,4 +852,3 @@ export function NewInterviewPage({ onStartSession, onCancel }: NewInterviewPageP
     </>
   );
 }
-

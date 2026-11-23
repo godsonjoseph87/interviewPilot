@@ -1,11 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import {
   Terminal,
-  Sparkles,
-  Shield,
-  Brain,
-  Code2,
-  Layers,
   Lock,
   UserCheck,
 } from 'lucide-react';
@@ -85,41 +80,47 @@ export function LoginPage() {
 
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col justify-center items-center p-6 relative overflow-hidden select-none">
-      {/* Subtle golden background glow */}
-      <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[550px] h-[550px] bg-gradient-to-tr from-amber-400/15 via-yellow-300/20 to-transparent rounded-full blur-[140px] pointer-events-none" />
+      {/* Ambient background atmosphere */}
+      <div className="ambient-bg" aria-hidden="true">
+        <div className="ambient-glow-indigo" />
+        <div className="ambient-glow-teal" />
+        <div className="ambient-grid" />
+      </div>
 
-      <div className="w-full max-w-md space-y-8 relative z-10 animate-fade-in">
+      <div className="w-full max-w-md space-y-6 relative z-10 animate-fade-in">
         {/* Brand Header */}
-        <div className="text-center space-y-3">
-          <div className="inline-flex items-center justify-center h-14 w-14 rounded-2xl bg-gradient-to-br from-amber-500 via-amber-400 to-yellow-500 shadow-lg shadow-amber-500/25 mb-1">
-            <Terminal className="h-7 w-7 text-stone-950" />
+        <div className="text-center space-y-2">
+          <div className="inline-flex items-center justify-center h-12 w-12 rounded-xl bg-primary-subtle border border-primary-border text-primary shadow-xs mb-1">
+            <Terminal className="h-6 w-6" />
           </div>
 
-          <div className="space-y-1">
-            <h1 className="text-3xl font-extrabold tracking-tight text-foreground">
-              InterviewPilot <span className="gold-gradient-text">AI</span>
-            </h1>
-            <p className="text-sm text-muted-foreground max-w-xs mx-auto">
-              AI-Powered Technical Interview Management & Real-Time Copilot
-            </p>
+          <div className="text-caption uppercase tracking-[0.12em] text-muted-foreground font-medium">
+            Technical Interview Platform
           </div>
+
+          <h1 className="text-display font-display font-semibold tracking-tight text-foreground">
+            Run <span className="font-serif italic font-normal bg-gradient-to-r from-primary to-accent-2 bg-clip-text text-transparent">sharper</span> interviews
+          </h1>
+          <p className="text-body text-muted-foreground max-w-xs mx-auto">
+            Live copilot, deterministic rubrics, and automated engineering evaluations.
+          </p>
         </div>
 
-        {/* Clean Login Card */}
-        <Card className="p-8 border-amber-200/80 bg-white shadow-xl rounded-2xl space-y-6">
-          <div className="text-center space-y-1.5">
-            <h2 className="text-lg font-bold text-foreground tracking-tight">
+        {/* Clean Auth Card */}
+        <Card className="p-6 sm:p-8 border border-border bg-card shadow-lg rounded-xl space-y-6">
+          <div className="text-center space-y-1">
+            <h2 className="text-h3 font-semibold text-foreground tracking-tight">
               Sign In to Continue
             </h2>
-            <p className="text-xs text-muted-foreground">
-              Authentication is required to access your interview workspace, candidate evaluation rubrics, and Gemini AI tools.
+            <p className="text-caption text-muted-foreground">
+              Access your technical workspaces, scoring rubrics, and AI evaluation tools.
             </p>
           </div>
 
           {/* Official Google Sign-In Container */}
           <div className="py-2 flex flex-col items-center justify-center min-h-[56px] space-y-3">
             {!isGisReady && effectiveClientId && (
-              <div className="h-11 w-[300px] rounded-full border border-amber-200 bg-amber-50/50 flex items-center justify-center text-xs text-amber-800 animate-pulse font-medium">
+              <div className="h-10 w-[300px] rounded-full border border-border bg-surface-raised flex items-center justify-center text-caption text-muted-foreground animate-pulse font-medium">
                 Initializing Google Sign-In...
               </div>
             )}
@@ -130,17 +131,17 @@ export function LoginPage() {
             />
 
             {!effectiveClientId && (
-              <div className="p-3 rounded-xl border border-border/70 bg-secondary/30 text-muted-foreground text-xs text-center w-full">
-                Google Sign-In is unavailable. You can continue with Guest Session below.
+              <div className="p-3 rounded-md border border-border bg-surface-raised text-muted-foreground text-caption text-center w-full">
+                Google Sign-In is unavailable in this environment. You can continue with a guest session below.
               </div>
             )}
           </div>
 
-          {/* Fallback / Local Development Sign-in Button */}
-          <div className="pt-2">
-            <div className="relative flex items-center justify-center my-2">
-              <div className="border-t border-border/80 w-full" />
-              <span className="bg-white px-2 text-[10px] text-muted-foreground uppercase tracking-widest font-mono">
+          {/* Fallback / Local Sandbox Sign-in Button */}
+          <div className="space-y-3">
+            <div className="relative flex items-center justify-center my-1">
+              <div className="border-t border-border w-full" />
+              <span className="bg-card px-2 text-caption font-mono uppercase tracking-widest text-subtle-foreground">
                 or
               </span>
             </div>
@@ -148,22 +149,23 @@ export function LoginPage() {
             <Button
               type="button"
               variant="outline"
+              size="md"
               onClick={() => signInAsDemo('Senior Tech Interviewer', 'interviewer@interviewpilot.ai')}
-              className="w-full text-xs font-semibold border-amber-300/80 bg-amber-50/50 hover:bg-amber-100/70 text-stone-900 flex items-center justify-center gap-2 h-10 rounded-xl transition-colors"
+              className="w-full flex items-center justify-center gap-2"
+              leftIcon={<UserCheck className="h-4 w-4 text-primary" />}
             >
-              <UserCheck className="h-4 w-4 text-amber-700" />
-              <span>Continue with Guest Session (Local Sandbox)</span>
+              Continue with Guest Session (Local Sandbox)
             </Button>
           </div>
 
-          <div className="pt-4 border-t border-border/60 flex items-center justify-center gap-1.5 text-[11px] text-muted-foreground">
-            <Lock className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
-            <span>Secure client-side sandbox • Zero server storage</span>
+          <div className="pt-4 border-t border-border flex items-center justify-center gap-1.5 text-caption text-subtle-foreground">
+            <Lock className="h-3.5 w-3.5 shrink-0" />
+            <span>Client-side sandbox • Zero external data persistence</span>
           </div>
         </Card>
 
-        {/* Subtle footer tag */}
-        <div className="text-center text-xs text-muted-foreground font-mono">
+        {/* Subtle footer */}
+        <div className="text-center text-caption text-subtle-foreground font-mono">
           <span>InterviewPilot AI • Engineering Interview Suite</span>
         </div>
       </div>

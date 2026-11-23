@@ -96,6 +96,10 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
 
 function applyTheme(theme: 'dark' | 'light' | 'system') {
   const root = document.documentElement;
+  try {
+    localStorage.setItem('interviewpilot-theme', theme);
+  } catch (e) {}
+
   if (theme === 'system') {
     const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
     if (prefersDark) {

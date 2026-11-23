@@ -18,6 +18,7 @@ import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import { Textarea } from '@/components/ui/Textarea';
 import { Input } from '@/components/ui/Input';
+import { CodeEditor } from '@/components/ui/CodeEditor';
 import { DSA_LANGUAGES } from '@/lib/constants';
 import { useInterviewSessionStore } from '@/store/useInterviewSessionStore';
 import { evaluateDsaSubmission } from '@/services/ai';
@@ -140,11 +141,11 @@ export function DsaAssessmentModal({
       maxWidth="full"
       title={
         <div className="flex items-center gap-2.5">
-          <div className="p-1.5 rounded-lg bg-amber-500/20 text-amber-800">
+          <div className="p-2 rounded-lg bg-primary-subtle text-primary border border-primary/20">
             <Code2 className="h-5 w-5" />
           </div>
           <div>
-            <span className="font-bold">Data Structures & Algorithms Assessment</span>
+            <span className="font-bold text-foreground">Data Structures & Algorithms Assessment</span>
             <span className="text-xs text-muted-foreground block font-normal">
               Problem {activeTab + 1} of {dsaProblems.length}: {currentProblem.title}
             </span>
@@ -155,7 +156,7 @@ export function DsaAssessmentModal({
       <div className="space-y-6">
         {/* Problem Tabs */}
         {dsaProblems.length > 1 && (
-          <div className="flex items-center gap-2 border-b border-border/60 pb-3">
+          <div className="flex items-center gap-2 border-b border-border pb-3">
             {dsaProblems.map((prob, idx) => {
               const hasSub = !!dsaSubmissions[prob.id]?.review;
               const isSelected = activeTab === idx;
@@ -163,16 +164,17 @@ export function DsaAssessmentModal({
                 <button
                   key={prob.id}
                   onClick={() => handleSelectProblem(idx)}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-2 transition-all ${isSelected
-                    ? 'bg-amber-500/15 text-amber-900 border border-amber-300/60 shadow-2xs'
-                    : 'text-muted-foreground hover:bg-secondary border border-transparent'
-                    }`}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-2 transition-all ${
+                    isSelected
+                      ? 'bg-primary-subtle text-primary border border-primary/30 shadow-xs'
+                      : 'text-muted-foreground hover:bg-muted border border-transparent'
+                  }`}
                 >
                   <span>Problem {idx + 1}: {prob.title}</span>
                   {hasSub ? (
-                    <span className="h-2 w-2 rounded-full bg-emerald-500" />
+                    <span className="h-2 w-2 rounded-full bg-success" />
                   ) : (
-                    <span className="h-2 w-2 rounded-full bg-stone-300" />
+                    <span className="h-2 w-2 rounded-full bg-muted-foreground/30" />
                   )}
                 </button>
               );
@@ -185,11 +187,11 @@ export function DsaAssessmentModal({
           {/* Left Column: Problem Details (5 cols) */}
           <div className="lg:col-span-5 space-y-4 max-h-[70vh] overflow-y-auto pr-2">
             {/* Problem Card */}
-            <div className="p-4 rounded-xl border border-amber-200/70 bg-white space-y-3 shadow-xs">
+            <div className="p-4 rounded-lg border border-border bg-card space-y-3 shadow-xs">
               <div className="flex items-center justify-between">
                 <Badge variant="default">Problem #{currentProblem.number}</Badge>
                 <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                  <Clock className="h-3.5 w-3.5 text-amber-600" />
+                  <Clock className="h-3.5 w-3.5 text-primary" />
                   <span>Suggested: {currentProblem.suggestedTimeMinutes} mins</span>
                 </div>
               </div>
@@ -206,7 +208,7 @@ export function DsaAssessmentModal({
               {/* Constraints */}
               {currentProblem.constraints && currentProblem.constraints.length > 0 && (
                 <div className="space-y-1 pt-1">
-                  <span className="text-[11px] font-semibold text-foreground uppercase tracking-wider">
+                  <span className="text-xs font-semibold text-foreground uppercase tracking-wider">
                     Constraints:
                   </span>
                   <ul className="list-disc list-inside text-xs text-muted-foreground font-mono space-y-0.5">
@@ -219,19 +221,19 @@ export function DsaAssessmentModal({
 
               {/* Sample IO */}
               {currentProblem.sampleInputs && currentProblem.sampleInputs.length > 0 && (
-                <div className="space-y-2 pt-2 border-t border-border/50 text-xs">
-                  <span className="text-[11px] font-semibold text-foreground uppercase tracking-wider block">
+                <div className="space-y-2 pt-2 border-t border-border text-xs">
+                  <span className="text-xs font-semibold text-foreground uppercase tracking-wider block">
                     Sample Test Cases:
                   </span>
-                  <div className="p-2.5 rounded-lg bg-amber-50/50 border border-amber-200/60 font-mono space-y-1.5 text-[11px]">
+                  <div className="p-2.5 rounded-lg bg-surface-raised border border-border font-mono space-y-1.5 text-xs">
                     <div>
                       <span className="text-muted-foreground">Input: </span>
-                      <span className="text-amber-800 font-semibold">{currentProblem.sampleInputs[0]}</span>
+                      <span className="text-primary font-semibold">{currentProblem.sampleInputs[0]}</span>
                     </div>
                     {currentProblem.sampleOutputs && currentProblem.sampleOutputs[0] && (
                       <div>
                         <span className="text-muted-foreground">Output: </span>
-                        <span className="text-emerald-700 font-semibold">{currentProblem.sampleOutputs[0]}</span>
+                        <span className="text-success font-semibold">{currentProblem.sampleOutputs[0]}</span>
                       </div>
                     )}
                   </div>
@@ -240,9 +242,9 @@ export function DsaAssessmentModal({
             </div>
 
             {/* Expected Approach & Complexity Reference (Interviewer Reference) */}
-            <div className="p-4 rounded-xl border border-amber-200/70 bg-amber-50/40 space-y-2.5 shadow-xs">
-              <div className="flex items-center gap-1.5 text-xs font-semibold text-amber-800">
-                <Sparkles className="h-3.5 w-3.5 text-amber-600" />
+            <div className="p-4 rounded-lg border border-primary/20 bg-primary-subtle space-y-2.5 shadow-xs">
+              <div className="flex items-center gap-1.5 text-xs font-semibold text-primary">
+                <Sparkles className="h-3.5 w-3.5" />
                 <span>Interviewer Reference: Expected Optimal Solution</span>
               </div>
 
@@ -252,20 +254,20 @@ export function DsaAssessmentModal({
                   {currentProblem.expectedApproach}
                 </p>
                 <div className="grid grid-cols-2 gap-2 text-xs font-mono pt-1">
-                  <div className="p-2 rounded bg-white border border-amber-200/60">
-                    <span className="text-[10px] text-muted-foreground block">Time Complexity</span>
-                    <span className="text-amber-800 font-bold">{currentProblem.expectedTimeComplexity}</span>
+                  <div className="p-2 rounded-md bg-card border border-border">
+                    <span className="text-xs text-muted-foreground block">Time Complexity</span>
+                    <span className="text-primary font-bold">{currentProblem.expectedTimeComplexity}</span>
                   </div>
-                  <div className="p-2 rounded bg-white border border-amber-200/60">
-                    <span className="text-[10px] text-muted-foreground block">Space Complexity</span>
-                    <span className="text-amber-800 font-bold">{currentProblem.expectedSpaceComplexity}</span>
+                  <div className="p-2 rounded-md bg-card border border-border">
+                    <span className="text-xs text-muted-foreground block">Space Complexity</span>
+                    <span className="text-primary font-bold">{currentProblem.expectedSpaceComplexity}</span>
                   </div>
                 </div>
 
                 {currentProblem.edgeCases && currentProblem.edgeCases.length > 0 && (
                   <div className="pt-1">
-                    <strong className="text-foreground text-[11px] block mb-1">Critical Edge Cases:</strong>
-                    <ul className="list-disc list-inside text-[11px] text-muted-foreground space-y-0.5">
+                    <strong className="text-foreground text-xs block mb-1">Critical Edge Cases:</strong>
+                    <ul className="list-disc list-inside text-xs text-muted-foreground space-y-0.5">
                       {currentProblem.edgeCases.map((ec, i) => (
                         <li key={i}>{ec}</li>
                       ))}
@@ -279,15 +281,15 @@ export function DsaAssessmentModal({
           {/* Right Column: Code Editor & AI Review Results (7 cols) */}
           <div className="lg:col-span-7 space-y-4 max-h-[70vh] overflow-y-auto pr-1">
             {/* Code Input Card */}
-            <div className="rounded-xl border border-border/80 bg-card overflow-hidden">
+            <div className="rounded-lg border border-border bg-card overflow-hidden">
               {/* Toolbar */}
-              <div className="flex items-center justify-between px-4 py-2.5 border-b border-border/60 bg-secondary/40">
+              <div className="flex items-center justify-between px-4 py-2.5 border-b border-border bg-surface">
                 <div className="flex items-center gap-3">
                   <span className="text-xs font-semibold text-foreground">Language:</span>
                   <select
                     value={selectedLang}
                     onChange={(e) => setSelectedLang(e.target.value)}
-                    className="h-8 rounded-md border border-input bg-card px-2 text-xs font-semibold focus-visible:outline-none"
+                    className="h-8 rounded-md border border-input bg-card px-2 text-xs font-semibold text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
                   >
                     {DSA_LANGUAGES.map((l) => (
                       <option key={l.id} value={l.id}>
@@ -305,7 +307,7 @@ export function DsaAssessmentModal({
                     className="h-7 px-2 text-xs text-muted-foreground hover:text-foreground"
                     title="Copy code"
                   >
-                    {isCopied ? <Check className="h-3.5 w-3.5 text-emerald-400" /> : <Copy className="h-3.5 w-3.5" />}
+                    {isCopied ? <Check className="h-3.5 w-3.5 text-success" /> : <Copy className="h-3.5 w-3.5" />}
                   </Button>
                   <Button
                     variant="ghost"
@@ -319,26 +321,30 @@ export function DsaAssessmentModal({
                 </div>
               </div>
 
-              {/* Code Textarea with JetBrains Mono font */}
-              <div className="p-3 bg-slate-950 font-mono">
-                <Textarea
+              {/* Interactive Code Editor with Syntax Highlighting & Line Numbers */}
+              <div className="p-0 border-b border-border">
+                <CodeEditor
                   value={candidateCode}
-                  onChange={(e) => setCandidateCode(e.target.value)}
-                  placeholder="Paste or type candidate's code submission here..."
-                  rows={12}
-                  className="w-full bg-transparent border-0 focus-visible:ring-0 text-slate-100 font-mono text-xs leading-relaxed resize-y"
+                  onChange={(val) => setCandidateCode(val)}
+                  language={selectedLang}
+                  fileName={`Solution.${selectedLang === 'python' ? 'py' : selectedLang === 'cpp' ? 'cpp' : selectedLang === 'javascript' ? 'js' : 'java'}`}
+                  readOnly={false}
+                  allowEditToggle={false}
+                  minHeight="320px"
+                  maxHeight="500px"
                 />
               </div>
 
               {/* Submit Review CTA */}
-              <div className="flex items-center justify-between p-3 border-t border-border/60 bg-secondary/20">
-                <span className="text-[11px] text-muted-foreground">
+              <div className="flex items-center justify-between p-3 bg-surface">
+                <span className="text-xs text-muted-foreground">
                   Static analysis reviews correctness, complexities, edge cases & code quality.
                 </span>
                 <Button
                   onClick={handleEvaluate}
                   disabled={isEvaluating}
                   isLoading={isEvaluating}
+                  variant="primary"
                   size="sm"
                   className="flex items-center gap-2 text-xs font-semibold"
                 >
@@ -350,22 +356,22 @@ export function DsaAssessmentModal({
 
             {/* Evaluation Error */}
             {evalError && (
-              <div className="p-3 rounded-lg border border-rose-500/30 bg-rose-500/10 text-rose-300 text-xs">
+              <div className="p-3 rounded-lg border border-danger-border bg-danger-subtle text-danger text-xs">
                 {evalError}
               </div>
             )}
 
             {/* AI Review Results Panel (Displays after evaluation) */}
             {review && (
-              <div className="p-5 rounded-xl border border-amber-300/70 bg-white space-y-5 shadow-xs animate-fade-in">
+              <div className="p-5 rounded-lg border border-border bg-card space-y-5 shadow-xs animate-fade-in">
                 {/* Score Header */}
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-border/60">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-border">
                   <div>
                     <div className="flex items-center gap-2">
                       <span className="text-sm font-bold text-foreground">
                         AI Code Review Verdict
                       </span>
-                      <span className="text-xs px-2.5 py-0.5 rounded-full bg-amber-500/15 text-amber-900 border border-amber-300/60 font-bold font-mono">
+                      <span className="text-xs px-2.5 py-0.5 rounded-full bg-primary-subtle text-primary border border-primary/30 font-bold font-mono">
                         AI Score: {review.overallScore100} / 100
                       </span>
                     </div>
@@ -397,79 +403,79 @@ export function DsaAssessmentModal({
 
                 {/* Rubric Breakdown Grid (6 dimensions) */}
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 text-xs">
-                  <div className="p-2.5 rounded-lg bg-secondary/40 border border-border/60">
+                  <div className="p-2.5 rounded-lg bg-surface-raised border border-border">
                     <div className="flex justify-between items-center mb-1">
-                      <span className="text-muted-foreground text-[11px]">Correctness (35%)</span>
+                      <span className="text-muted-foreground text-xs">Correctness (35%)</span>
                       <span className="font-bold text-foreground font-mono">{review.logicalCorrectnessScore} / 35</span>
                     </div>
-                    <div className="h-1.5 w-full bg-secondary rounded-full overflow-hidden">
+                    <div className="h-1.5 w-full bg-muted rounded-full overflow-hidden">
                       <div
-                        className="h-full bg-emerald-500 rounded-full"
+                        className="h-full bg-success rounded-full"
                         style={{ width: `${(review.logicalCorrectnessScore / 35) * 100}%` }}
                       />
                     </div>
                   </div>
 
-                  <div className="p-2.5 rounded-lg bg-secondary/40 border border-border/60">
+                  <div className="p-2.5 rounded-lg bg-surface-raised border border-border">
                     <div className="flex justify-between items-center mb-1">
-                      <span className="text-muted-foreground text-[11px]">Algorithm (20%)</span>
+                      <span className="text-muted-foreground text-xs">Algorithm (20%)</span>
                       <span className="font-bold text-foreground font-mono">{review.algorithmSelectionScore} / 20</span>
                     </div>
-                    <div className="h-1.5 w-full bg-secondary rounded-full overflow-hidden">
+                    <div className="h-1.5 w-full bg-muted rounded-full overflow-hidden">
                       <div
-                        className="h-full bg-cyan-500 rounded-full"
+                        className="h-full bg-primary rounded-full"
                         style={{ width: `${(review.algorithmSelectionScore / 20) * 100}%` }}
                       />
                     </div>
                   </div>
 
-                  <div className="p-2.5 rounded-lg bg-secondary/40 border border-border/60">
+                  <div className="p-2.5 rounded-lg bg-surface-raised border border-border">
                     <div className="flex justify-between items-center mb-1">
-                      <span className="text-muted-foreground text-[11px]">Time Comp (15%)</span>
+                      <span className="text-muted-foreground text-xs">Time Comp (15%)</span>
                       <span className="font-bold text-foreground font-mono">{review.timeComplexityScore} / 15</span>
                     </div>
-                    <div className="h-1.5 w-full bg-secondary rounded-full overflow-hidden">
+                    <div className="h-1.5 w-full bg-muted rounded-full overflow-hidden">
                       <div
-                        className="h-full bg-blue-500 rounded-full"
+                        className="h-full bg-info rounded-full"
                         style={{ width: `${(review.timeComplexityScore / 15) * 100}%` }}
                       />
                     </div>
                   </div>
 
-                  <div className="p-2.5 rounded-lg bg-secondary/40 border border-border/60">
+                  <div className="p-2.5 rounded-lg bg-surface-raised border border-border">
                     <div className="flex justify-between items-center mb-1">
-                      <span className="text-muted-foreground text-[11px]">Space Comp (10%)</span>
+                      <span className="text-muted-foreground text-xs">Space Comp (10%)</span>
                       <span className="font-bold text-foreground font-mono">{review.spaceComplexityScore} / 10</span>
                     </div>
-                    <div className="h-1.5 w-full bg-secondary rounded-full overflow-hidden">
+                    <div className="h-1.5 w-full bg-muted rounded-full overflow-hidden">
                       <div
-                        className="h-full bg-violet-500 rounded-full"
+                        className="h-full bg-primary rounded-full"
                         style={{ width: `${(review.spaceComplexityScore / 10) * 100}%` }}
                       />
                     </div>
                   </div>
 
-                  <div className="p-2.5 rounded-lg bg-secondary/40 border border-border/60">
+                  <div className="p-2.5 rounded-lg bg-surface-raised border border-border">
                     <div className="flex justify-between items-center mb-1">
-                      <span className="text-muted-foreground text-[11px]">Edge Cases (10%)</span>
+                      <span className="text-muted-foreground text-xs">Edge Cases (10%)</span>
                       <span className="font-bold text-foreground font-mono">{review.edgeCaseHandlingScore} / 10</span>
                     </div>
-                    <div className="h-1.5 w-full bg-secondary rounded-full overflow-hidden">
+                    <div className="h-1.5 w-full bg-muted rounded-full overflow-hidden">
                       <div
-                        className="h-full bg-amber-500 rounded-full"
+                        className="h-full bg-warning rounded-full"
                         style={{ width: `${(review.edgeCaseHandlingScore / 10) * 100}%` }}
                       />
                     </div>
                   </div>
 
-                  <div className="p-2.5 rounded-lg bg-secondary/40 border border-border/60">
+                  <div className="p-2.5 rounded-lg bg-surface-raised border border-border">
                     <div className="flex justify-between items-center mb-1">
-                      <span className="text-muted-foreground text-[11px]">Code Quality (10%)</span>
+                      <span className="text-muted-foreground text-xs">Code Quality (10%)</span>
                       <span className="font-bold text-foreground font-mono">{review.codeQualityScore} / 10</span>
                     </div>
-                    <div className="h-1.5 w-full bg-secondary rounded-full overflow-hidden">
+                    <div className="h-1.5 w-full bg-muted rounded-full overflow-hidden">
                       <div
-                        className="h-full bg-indigo-500 rounded-full"
+                        className="h-full bg-primary rounded-full"
                         style={{ width: `${(review.codeQualityScore / 10) * 100}%` }}
                       />
                     </div>
@@ -480,22 +486,22 @@ export function DsaAssessmentModal({
                 <div className="space-y-3 text-xs leading-relaxed">
                   <div>
                     <h5 className="font-bold text-foreground mb-1">Detailed Static Evaluation:</h5>
-                    <p className="text-muted-foreground bg-secondary/30 p-2.5 rounded-lg border border-border/50">
+                    <p className="text-muted-foreground bg-surface-raised p-2.5 rounded-md border border-border">
                       {review.detailedEvaluation}
                     </p>
                   </div>
 
                   <div>
                     <h5 className="font-bold text-foreground mb-1">Complexity Analysis:</h5>
-                    <p className="text-muted-foreground font-mono text-[11px] bg-secondary/30 p-2.5 rounded-lg border border-border/50">
+                    <p className="text-muted-foreground font-mono text-xs bg-surface-raised p-2.5 rounded-md border border-border">
                       {review.complexityAnalysis}
                     </p>
                   </div>
 
                   {review.potentialLogicalErrors && review.potentialLogicalErrors.length > 0 && (
                     <div>
-                      <h5 className="font-bold text-rose-400 mb-1">Potential Logical Bugs (Static Analysis):</h5>
-                      <ul className="list-disc list-inside text-rose-300 text-[11px] bg-rose-500/10 p-2.5 rounded-lg border border-rose-500/20 space-y-1">
+                      <h5 className="font-bold text-danger mb-1">Potential Logical Bugs (Static Analysis):</h5>
+                      <ul className="list-disc list-inside text-danger text-xs bg-danger-subtle p-2.5 rounded-md border border-danger-border space-y-1">
                         {review.potentialLogicalErrors.map((err, i) => (
                           <li key={i}>{err}</li>
                         ))}
@@ -505,8 +511,8 @@ export function DsaAssessmentModal({
 
                   {review.missingEdgeCases && review.missingEdgeCases.length > 0 && (
                     <div>
-                      <h5 className="font-bold text-amber-400 mb-1">Missing Edge Cases:</h5>
-                      <ul className="list-disc list-inside text-amber-300 text-[11px] bg-amber-500/10 p-2.5 rounded-lg border border-amber-500/20 space-y-1">
+                      <h5 className="font-bold text-warning mb-1">Missing Edge Cases:</h5>
+                      <ul className="list-disc list-inside text-warning text-xs bg-warning-subtle p-2.5 rounded-md border border-warning-border space-y-1">
                         {review.missingEdgeCases.map((ec, i) => (
                           <li key={i}>{ec}</li>
                         ))}
@@ -516,8 +522,8 @@ export function DsaAssessmentModal({
 
                   {review.improvementSuggestions && review.improvementSuggestions.length > 0 && (
                     <div>
-                      <h5 className="font-bold text-cyan-300 mb-1">Improvement Suggestions:</h5>
-                      <ul className="list-disc list-inside text-muted-foreground text-[11px] space-y-0.5">
+                      <h5 className="font-bold text-info mb-1">Improvement Suggestions:</h5>
+                      <ul className="list-disc list-inside text-muted-foreground text-xs space-y-0.5">
                         {review.improvementSuggestions.map((sug, i) => (
                           <li key={i}>{sug}</li>
                         ))}
@@ -545,7 +551,7 @@ export function DsaAssessmentModal({
         </div>
 
         {/* Modal Action Footer */}
-        <div className="flex items-center justify-between pt-4 border-t border-border/60">
+        <div className="flex items-center justify-between pt-4 border-t border-border">
           <Button variant="outline" onClick={onClose} size="sm">
             Close Assessment View
           </Button>
@@ -553,7 +559,7 @@ export function DsaAssessmentModal({
           <div className="flex items-center gap-2">
             {activeTab < dsaProblems.length - 1 ? (
               <Button
-                variant="default"
+                variant="primary"
                 size="sm"
                 onClick={() => handleSelectProblem(activeTab + 1)}
                 className="flex items-center gap-1.5"

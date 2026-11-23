@@ -16,50 +16,59 @@ export function ScoreBadge({
   className,
 }: ScoreBadgeProps) {
   if (recommendation) {
-    const config: Record<string, { bg: string; text: string; border: string }> = {
+    const config: Record<
+      string,
+      { bg: string; text: string; border: string; dot: string }
+    > = {
       'Strong Hire': {
-        bg: 'bg-emerald-500/15',
-        text: 'text-emerald-400',
-        border: 'border-emerald-500/30',
+        bg: 'bg-success-subtle',
+        text: 'text-success-foreground',
+        border: 'border-success-border',
+        dot: 'bg-success',
       },
       Hire: {
-        bg: 'bg-indigo-500/15',
-        text: 'text-indigo-300',
-        border: 'border-indigo-500/30',
+        bg: 'bg-primary-subtle',
+        text: 'text-primary',
+        border: 'border-primary-border',
+        dot: 'bg-primary',
       },
       'Lean Hire': {
-        bg: 'bg-blue-500/15',
-        text: 'text-blue-300',
-        border: 'border-blue-500/30',
+        bg: 'bg-info-subtle',
+        text: 'text-info-foreground',
+        border: 'border-info-border',
+        dot: 'bg-info',
       },
       'Lean No Hire': {
-        bg: 'bg-amber-500/15',
-        text: 'text-amber-400',
-        border: 'border-amber-500/30',
+        bg: 'bg-warning-subtle',
+        text: 'text-warning-foreground',
+        border: 'border-warning-border',
+        dot: 'bg-warning',
       },
       'No Hire': {
-        bg: 'bg-rose-500/15',
-        text: 'text-rose-400',
-        border: 'border-rose-500/30',
+        bg: 'bg-danger-subtle',
+        text: 'text-danger-foreground',
+        border: 'border-danger-border',
+        dot: 'bg-danger',
       },
     };
 
     const style = config[recommendation] || {
-      bg: 'bg-slate-800',
-      text: 'text-slate-300',
-      border: 'border-slate-700',
+      bg: 'bg-surface-raised',
+      text: 'text-muted-foreground',
+      border: 'border-border',
+      dot: 'bg-muted-foreground',
     };
 
     const sizeClasses = {
-      sm: 'px-2 py-0.5 text-xs',
-      md: 'px-3 py-1 text-xs font-semibold',
-      lg: 'px-4 py-1.5 text-sm font-bold',
+      sm: 'px-2 py-0.5 text-caption',
+      md: 'px-2.5 py-1 text-caption font-medium',
+      lg: 'px-3.5 py-1.5 text-small font-semibold',
     };
 
     return (
       <span
         className={cn(
-          'inline-flex items-center rounded-full border shadow-sm',
+          'inline-flex items-center rounded-full border shadow-2xs font-medium select-none',
           style.bg,
           style.text,
           style.border,
@@ -67,32 +76,32 @@ export function ScoreBadge({
           className
         )}
       >
-        <span className="h-1.5 w-1.5 rounded-full bg-current mr-1.5 animate-pulse" />
+        <span className={cn('h-1.5 w-1.5 rounded-full mr-1.5 shrink-0', style.dot)} />
         {recommendation}
       </span>
     );
   }
 
   if (score !== undefined) {
-    let colorClass = 'text-rose-400 bg-rose-500/10 border-rose-500/30';
-    if (score >= 85) {
-      colorClass = 'text-emerald-400 bg-emerald-500/10 border-emerald-500/30';
-    } else if (score >= 70) {
-      colorClass = 'text-indigo-300 bg-indigo-500/10 border-indigo-500/30';
-    } else if (score >= 50) {
-      colorClass = 'text-amber-400 bg-amber-500/10 border-amber-500/30';
+    let colorClass = 'text-danger-foreground bg-danger-subtle border-danger-border';
+    if (score >= 80) {
+      colorClass = 'text-success-foreground bg-success-subtle border-success-border';
+    } else if (score >= 60) {
+      colorClass = 'text-info-foreground bg-info-subtle border-info-border';
+    } else if (score >= 40) {
+      colorClass = 'text-warning-foreground bg-warning-subtle border-warning-border';
     }
 
     const sizeClasses = {
-      sm: 'px-2 py-0.5 text-xs',
-      md: 'px-2.5 py-1 text-sm font-semibold',
-      lg: 'px-3.5 py-1.5 text-base font-bold',
+      sm: 'px-2 py-0.5 text-caption',
+      md: 'px-2.5 py-1 text-small font-semibold',
+      lg: 'px-3.5 py-1.5 text-body font-bold',
     };
 
     return (
       <span
         className={cn(
-          'inline-flex items-center rounded-lg border font-mono',
+          'inline-flex items-center rounded-md border font-mono tabular-nums shadow-2xs select-none',
           colorClass,
           sizeClasses[size],
           className
@@ -105,4 +114,3 @@ export function ScoreBadge({
 
   return null;
 }
-

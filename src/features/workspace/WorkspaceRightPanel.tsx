@@ -9,14 +9,12 @@ import {
   SkipForward,
   ChevronLeft,
   ChevronRight,
-  Save,
   Check,
   FileCheck,
   Sliders,
 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Textarea } from '@/components/ui/Textarea';
-import { Input } from '@/components/ui/Input';
 import { useInterviewSessionStore } from '@/store/useInterviewSessionStore';
 import { formatDuration } from '@/lib/utils';
 import type { EvaluationStatus, QuestionEvaluation } from '@/types';
@@ -116,16 +114,16 @@ export function WorkspaceRightPanel({
   };
 
   return (
-    <aside className="w-84 lg:w-96 shrink-0 border-l border-border/80 bg-card/70 flex flex-col h-[calc(100vh-4rem)] overflow-hidden">
+    <aside className="w-84 lg:w-96 shrink-0 border-l border-border bg-card flex flex-col h-[calc(100vh-3.5rem)] overflow-hidden">
       {/* Timers & Pause/Resume Header */}
-      <div className="p-4 border-b border-border/60 bg-secondary/20 space-y-3">
+      <div className="p-4 border-b border-border bg-surface space-y-3">
         <div className="flex items-center justify-between">
           <div className="space-y-0.5">
-            <span className="text-[10px] uppercase font-bold text-muted-foreground tracking-wider block">
+            <span className="text-xs uppercase font-semibold text-muted-foreground tracking-wider block">
               Total Elapsed Time
             </span>
-            <div className="flex items-baseline gap-2 font-mono">
-              <span className="text-2xl font-black tracking-tight text-foreground">
+            <div className="flex items-baseline gap-2 font-mono tabular-nums">
+              <span className="text-2xl font-bold tracking-tight text-foreground">
                 {formatDuration(totalElapsedSeconds)}
               </span>
               <span className="text-xs text-muted-foreground">
@@ -136,29 +134,29 @@ export function WorkspaceRightPanel({
 
           {session.status === 'draft' ? (
             <Button
-              variant="default"
+              variant="success"
               size="sm"
               onClick={startInterview}
-              className="h-8 px-3.5 text-xs font-bold flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white"
+              className="h-8 px-3 text-xs font-semibold flex items-center gap-1.5"
             >
               <Play className="h-3.5 w-3.5 fill-current" />
               <span>Start</span>
             </Button>
           ) : (
             <Button
-              variant={isPaused ? 'default' : 'outline'}
+              variant={isPaused ? 'primary' : 'outline'}
               size="sm"
               onClick={togglePauseTimer}
-              className="h-8 px-2.5 text-xs font-semibold flex items-center gap-1.5"
+              className="h-8 px-3 text-xs font-semibold flex items-center gap-1.5"
             >
               {isPaused ? (
                 <>
-                  <Play className="h-3.5 w-3.5 fill-current text-slate-950" />
+                  <Play className="h-3.5 w-3.5 fill-current" />
                   <span>Resume</span>
                 </>
               ) : (
                 <>
-                  <Pause className="h-3.5 w-3.5 text-amber-400" />
+                  <Pause className="h-3.5 w-3.5" />
                   <span>Pause</span>
                 </>
               )}
@@ -166,97 +164,97 @@ export function WorkspaceRightPanel({
           )}
         </div>
 
-        {/* Current Question Stopwatch */}
-        <div className="flex items-center justify-between text-xs p-2 rounded-lg bg-card/60 border border-border/50 font-mono">
-          <span className="text-muted-foreground flex items-center gap-1.5 font-sans">
-            <Clock className="h-3.5 w-3.5 text-cyan-400" />
-            <span>Question Timer:</span>
+        {/* Question-Specific Timer */}
+        <div className="flex items-center justify-between pt-2 border-t border-border text-xs">
+          <span className="text-muted-foreground flex items-center gap-1.5">
+            <Clock className="h-3.5 w-3.5 text-primary" />
+            <span>Time on current question:</span>
           </span>
-          <span className="font-bold text-cyan-300">
+          <span className="font-mono tabular-nums font-bold text-foreground">
             {formatDuration(questionElapsedSeconds)}
           </span>
         </div>
       </div>
 
-      {/* Main Controls Body */}
+      {/* Main Scrollable Body: Scoring & Notes */}
       <div className="flex-1 overflow-y-auto p-4 space-y-5">
-        {/* Evaluation Controls */}
+        {/* Scoring Status Section */}
         <div className="space-y-2.5">
           <div className="flex items-center justify-between">
-            <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-              Evaluate Response
+            <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+              Candidate Evaluation
             </label>
             {isSavedIndicator && (
-              <span className="text-[11px] text-emerald-400 font-medium flex items-center gap-1 animate-fade-in">
+              <span className="text-xs text-success flex items-center gap-1 font-medium animate-fade-in">
                 <Check className="h-3 w-3" />
-                <span>Autosaved</span>
+                <span>Saved</span>
               </span>
             )}
           </div>
 
-          {/* Quick Action Evaluation Buttons */}
+          {/* Quick Score Buttons (Grid) */}
           <div className="grid grid-cols-2 gap-2">
             <button
               type="button"
               onClick={() => handleEvaluationClick('correct')}
-              className={`p-2.5 rounded-xl border text-xs font-bold flex items-center justify-center gap-2 transition-all shadow-xs hover:shadow-sm ${
+              className={`p-2.5 rounded-lg border text-xs font-semibold flex items-center justify-center gap-2 transition-colors ${
                 currentStatus === 'correct'
-                  ? 'bg-emerald-500/20 border-emerald-500 text-emerald-300 shadow-md shadow-emerald-500/10'
-                  : 'bg-secondary/40 border-border/60 hover:border-emerald-500/40 text-muted-foreground hover:text-foreground'
+                  ? 'bg-success-subtle border-success text-success shadow-xs'
+                  : 'bg-surface-raised border-border hover:border-success/40 text-muted-foreground hover:text-foreground'
               }`}
             >
-              <CheckCircle2 className="h-4 w-4 text-emerald-400" />
+              <CheckCircle2 className="h-4 w-4 text-success" />
               <span>Correct ({maxScore} pts)</span>
             </button>
 
             <button
               type="button"
               onClick={() => handleEvaluationClick('partially_correct')}
-              className={`p-2.5 rounded-xl border text-xs font-bold flex items-center justify-center gap-2 transition-all shadow-xs hover:shadow-sm ${
+              className={`p-2.5 rounded-lg border text-xs font-semibold flex items-center justify-center gap-2 transition-colors ${
                 currentStatus === 'partially_correct'
-                  ? 'bg-cyan-500/20 border-cyan-500 text-cyan-300 shadow-md shadow-cyan-500/10'
-                  : 'bg-secondary/40 border-border/60 hover:border-cyan-500/40 text-muted-foreground hover:text-foreground'
+                  ? 'bg-primary-subtle border-primary text-primary shadow-xs'
+                  : 'bg-surface-raised border-border hover:border-primary/40 text-muted-foreground hover:text-foreground'
               }`}
             >
-              <MinusCircle className="h-4 w-4 text-cyan-400" />
+              <MinusCircle className="h-4 w-4 text-primary" />
               <span>Partial ({halfScore} pts)</span>
             </button>
 
             <button
               type="button"
               onClick={() => handleEvaluationClick('incorrect')}
-              className={`p-2.5 rounded-xl border text-xs font-bold flex items-center justify-center gap-2 transition-all shadow-xs hover:shadow-sm ${
+              className={`p-2.5 rounded-lg border text-xs font-semibold flex items-center justify-center gap-2 transition-colors ${
                 currentStatus === 'incorrect'
-                  ? 'bg-rose-500/20 border-rose-500 text-rose-300 shadow-md shadow-rose-500/10'
-                  : 'bg-secondary/40 border-border/60 hover:border-rose-500/40 text-muted-foreground hover:text-foreground'
+                  ? 'bg-danger-subtle border-danger text-danger shadow-xs'
+                  : 'bg-surface-raised border-border hover:border-danger/40 text-muted-foreground hover:text-foreground'
               }`}
             >
-              <XCircle className="h-4 w-4 text-rose-400" />
+              <XCircle className="h-4 w-4 text-danger" />
               <span>Incorrect (0 pts)</span>
             </button>
 
             <button
               type="button"
               onClick={() => handleEvaluationClick('skipped')}
-              className={`p-2.5 rounded-xl border text-xs font-bold flex items-center justify-center gap-2 transition-all shadow-xs hover:shadow-sm ${
+              className={`p-2.5 rounded-lg border text-xs font-semibold flex items-center justify-center gap-2 transition-colors ${
                 currentStatus === 'skipped'
-                  ? 'bg-amber-500/20 border-amber-500 text-amber-300 shadow-md shadow-amber-500/10'
-                  : 'bg-secondary/40 border-border/60 hover:border-amber-500/40 text-muted-foreground hover:text-foreground'
+                  ? 'bg-warning-subtle border-warning text-warning shadow-xs'
+                  : 'bg-surface-raised border-border hover:border-warning/40 text-muted-foreground hover:text-foreground'
               }`}
             >
-              <SkipForward className="h-4 w-4 text-amber-400" />
+              <SkipForward className="h-4 w-4 text-warning" />
               <span>Skip (Exclude)</span>
             </button>
           </div>
 
           {/* Fine-Tuning Score Slider / Override */}
-          <div className="p-3 rounded-xl border border-border/60 bg-secondary/20 space-y-2">
+          <div className="p-3 rounded-lg border border-border bg-surface-raised space-y-2">
             <div className="flex items-center justify-between text-xs font-medium">
               <span className="text-muted-foreground flex items-center gap-1.5">
-                <Sliders className="h-3.5 w-3.5 text-cyan-400" />
+                <Sliders className="h-3.5 w-3.5 text-primary" />
                 <span>Adjust Awarded Marks:</span>
               </span>
-              <span className="font-mono font-bold text-foreground">
+              <span className="font-mono tabular-nums font-bold text-foreground">
                 {currentEval?.score !== undefined ? currentEval.score : customScoreInput} / {maxScore}
               </span>
             </div>
@@ -268,14 +266,14 @@ export function WorkspaceRightPanel({
               step={1}
               value={currentEval?.score !== undefined ? currentEval.score : customScoreInput}
               onChange={(e) => handleCustomScoreChange(Number(e.target.value))}
-              className="w-full h-1.5 bg-secondary rounded-lg appearance-none cursor-pointer accent-cyan-400"
+              className="w-full h-1.5 bg-muted rounded-lg appearance-none cursor-pointer accent-primary"
             />
           </div>
         </div>
 
         {/* Live Candidate Notes */}
         <div className="space-y-1.5">
-          <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground block">
+          <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground block">
             Interviewer Observation Notes
           </label>
           <Textarea
@@ -285,21 +283,21 @@ export function WorkspaceRightPanel({
             rows={8}
             className="text-xs leading-relaxed"
           />
-          <p className="text-[10px] text-muted-foreground italic">
+          <p className="text-caption text-muted-foreground italic">
             Changes auto-save locally to IndexedDB as you type.
           </p>
         </div>
       </div>
 
       {/* Navigation & Completion Footer */}
-      <div className="p-4 border-t border-border/60 bg-secondary/30 space-y-2.5">
+      <div className="p-4 border-t border-border bg-surface space-y-2.5">
         <div className="flex items-center gap-2">
           <Button
             variant="outline"
             size="sm"
             onClick={prevQuestion}
             disabled={currentQuestionIndex === 0}
-            className="flex-1 h-8 px-3 text-xs font-semibold rounded-lg inline-flex items-center justify-center"
+            className="flex-1 h-8 text-xs font-semibold"
           >
             <ChevronLeft className="h-3.5 w-3.5 mr-1" />
             <span>Previous</span>
@@ -310,7 +308,7 @@ export function WorkspaceRightPanel({
             size="sm"
             onClick={nextQuestion}
             disabled={currentQuestionIndex === questions.length - 1}
-            className="flex-1 h-8 px-3 text-xs font-semibold rounded-lg inline-flex items-center justify-center"
+            className="flex-1 h-8 text-xs font-semibold"
           >
             <span>Next</span>
             <ChevronRight className="h-3.5 w-3.5 ml-1" />
@@ -318,10 +316,10 @@ export function WorkspaceRightPanel({
         </div>
 
         <Button
-          variant="success"
-          size="default"
+          variant="primary"
+          size="md"
           onClick={onFinishInterviewRequest}
-          className="w-full h-9 px-4 text-xs font-bold rounded-lg flex items-center justify-center gap-2 shadow-lg shadow-emerald-600/20"
+          className="w-full h-9 text-xs font-semibold flex items-center justify-center gap-2"
         >
           <FileCheck className="h-4 w-4" />
           <span>Finish Interview & Generate Report</span>
@@ -330,4 +328,3 @@ export function WorkspaceRightPanel({
     </aside>
   );
 }
-
